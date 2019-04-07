@@ -33,7 +33,7 @@ defmodule Unleash.Strategy do
 
   defstruct name: "default", params: %{}
 
-  @callback enabled?(params :: Map.t(), context :: Map.t()) :: {boolean, Map.t()}
+  @callback enabled?(params :: Map.t(), context :: Map.t()) :: {boolean, Map.t()} | Map.t()
 
   def enabled?(%__MODULE__{} = _strat, _context) do
     true

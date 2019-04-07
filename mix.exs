@@ -23,6 +23,7 @@ defmodule Unleash.MixProject do
   defp deps do
     [
       {:credo, "~>1.0", only: [:dev, :test], runtime: false},
+      {:murmur, "~> 1.0"},
       {:mint, "~>0.1.0"},
       {:mojito, "~> 0.1.0"}
     ]

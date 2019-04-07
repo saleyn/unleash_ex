@@ -5,6 +5,7 @@ defmodule Unleash.Strategies do
     [
       {"ActiveForUsersWithId", ActiveForUsersWithId},
       {"GradualRolloutRandom", GradualRolloutRandom},
+      {"GradualRolloutSessionId", GradualRolloutSessionId},
       {"RemoteAddress", RemoteAddress}
     ]
   end
