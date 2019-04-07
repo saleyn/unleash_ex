@@ -3,6 +3,8 @@ defmodule Unleash.Strategies do
     ActiveForUsersWithId,
     ApplicationHostname,
     GradualRolloutRandom,
+    GradualRolloutSessionId,
+    GradualRolloutUserId,
     RemoteAddress
   }
 
@@ -12,6 +14,7 @@ defmodule Unleash.Strategies do
       {"ApplicationHostname", ApplicationHostname},
       {"GradualRolloutRandom", GradualRolloutRandom},
       {"GradualRolloutSessionId", GradualRolloutSessionId},
+      {"GradualRolloutUserId", GradualRolloutUserId},
       {"RemoteAddress", RemoteAddress}
     ]
   end
