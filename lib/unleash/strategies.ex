@@ -2,6 +2,7 @@ defmodule Unleash.Strategies do
   alias Unleash.Strategy.{
     ActiveForUsersWithId,
     ApplicationHostname,
+    Default,
     GradualRolloutRandom,
     GradualRolloutSessionId,
     GradualRolloutUserId,
@@ -12,6 +13,7 @@ defmodule Unleash.Strategies do
     [
       {"ActiveForUsersWithId", ActiveForUsersWithId},
       {"ApplicationHostname", ApplicationHostname},
+      {"Default", Default},
       {"GradualRolloutRandom", GradualRolloutRandom},
       {"GradualRolloutSessionId", GradualRolloutSessionId},
       {"GradualRolloutUserId", GradualRolloutUserId},
