@@ -15,7 +15,12 @@ defmodule Unleash.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      env: [url: "localhost", app_name: "", instance_id: ""]
+      env: [
+        url: "http://localhost:4242",
+        appname: "",
+        instance_id: "",
+        metrics_period: 60 * 60 * 1000
+      ]
     ]
   end
 
@@ -24,6 +29,9 @@ defmodule Unleash.MixProject do
     [
       {:credo, "~>1.0", only: [:dev, :test], runtime: false},
       {:murmur, "~> 1.0"},
+      {:tesla, "~> 1.2"},
+      {:hackney, "~> 1.14.0"},
+      {:jason, ">= 1.0.0"},
       {:mint, "~>0.1.0"},
       {:mojito, "~> 0.1.0"}
     ]
