@@ -8,25 +8,15 @@ defmodule Unleash.Client do
     |> Tesla.get("/api/client/features")
   end
 
-  def register(client) do
-    client
+  def register(client), do: send_data("/api/client/register", client)
+
+  def metrics(met), do: send_data("/api/client/metrics", met)
+
+  defp send_data(url, data) do
+    data
     |> tag_data()
     |> (&Tesla.post(client(), url, &1)).()
   end
-
-  @spec metrics(met :: Map.t()) :: Tesla.Result.t()
-  def metrics(met) do
-    met
-    |> tag_data()
-    |> (&post("/api/client/metrics", &1)).()
-  end
-
-  defp tag_data(data),
-    do: %{
-      data
-      | app_name: Application.get_env(:unleash, :appname),
-        instance_id: Application.get_env(:unleash, :instance_id)
-    }
 
   defp client() do
     [
@@ -39,5 +29,10 @@ defmodule Unleash.Client do
        ]}
     ]
     |> Tesla.client()
+
+  defp tag_data(data) do
+    data
+    |> Map.put(:app_name, Config.appname())
+    |> Map.put(:instance_id, Config.instance_id())
   end
 end
