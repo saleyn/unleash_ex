@@ -9,12 +9,13 @@ defmodule Unleash.Repo do
   end
 
   def start_link(state) do
-    GenServer.start_link(__MODULE__, state, name: Unleash.Repo)
+    {:ok, pid} = GenServer.start_link(__MODULE__, state, name: Unleash.Repo)
+
+    initialize()
+
+    {:ok, pid}
   end
 
-  def initialize() do
-    GenServer.cast(Unleash.Repo, :initialize)
-  end
 
   def get_feature(name) do
     GenServer.call(Unleash.Repo, {:get_feature, name})
@@ -31,5 +32,9 @@ defmodule Unleash.Repo do
       {:ok, features} -> {:noreply, features}
       {:error, r} -> {:stop, r}
     end
+  end
+
+  defp initialize() do
+    GenServer.cast(Unleash.Repo, :initialize)
   end
 end
