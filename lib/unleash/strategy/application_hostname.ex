@@ -3,7 +3,7 @@ defmodule Unleash.Strategy.ApplicationHostname do
 
   alias Unleash.Strategy.Utils
 
-  def enabled?(%{hostnames: hostnames}, _context) do
+  def enabled?(%{"hostnames" => hostnames}, _context) do
     case :inet.gethostname() do
       {:ok, hostname} ->
         {Utils.in_list?(hostname, hostnames, &String.downcase/1),

@@ -4,7 +4,7 @@ defmodule Unleash.Strategy.GradualRolloutSessionId do
 
   def enabled?(_params, %{session_id: ""}), do: false
 
-  def enabled?(%{percentage: percentage, group_id: group_id}, %{session_id: session_id})
+  def enabled?(%{"percentage" => percentage, "groupId" => group_id}, %{session_id: session_id})
       when is_binary(percentage) and is_binary(group_id) and is_binary(session_id) do
     result =
       percentage
@@ -14,8 +14,8 @@ defmodule Unleash.Strategy.GradualRolloutSessionId do
     {result, %{group: group_id, session: session_id, percentage: percentage}}
   end
 
-  def enabled?(%{percentage: _p} = params, %{session_id: _s} = context) do
-    enabled?(%{params | group_id: ""}, context)
+  def enabled?(%{"percentage" => _p} = params, %{session_id: _s} = context) do
+    enabled?(%{params | "groupId" => ""}, context)
   end
 
   def enabled?(_params, _context), do: false

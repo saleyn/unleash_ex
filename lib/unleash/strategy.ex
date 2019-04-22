@@ -1,4 +1,6 @@
 defmodule Unleash.Strategy do
+  alias Unleash.Config
+
   defmacro __using__(opts) do
     name = opts[:name]
 
@@ -33,7 +35,13 @@ defmodule Unleash.Strategy do
 
   @callback enabled?(params :: Map.t(), context :: Map.t()) :: {boolean, Map.t()} | Map.t()
 
-  def enabled?(%{} = _strat, _context) do
-    true
+  def enabled?(%{"name" => name, "parameters" => params}, context) do
+    {_name, module} =
+      Config.strategies()
+      |> Enum.find(fn {n, _mod} -> n == name end)
+
+    module.enabled?(params, context)
   end
+
+  def enabled?(_strat, _context), do: false
 end

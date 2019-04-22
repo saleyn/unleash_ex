@@ -11,13 +11,13 @@ defmodule Unleash.Strategies do
 
   def strategies do
     [
-      {"ActiveForUsersWithId", ActiveForUsersWithId},
-      {"ApplicationHostname", ApplicationHostname},
-      {"Default", Default},
-      {"GradualRolloutRandom", GradualRolloutRandom},
-      {"GradualRolloutSessionId", GradualRolloutSessionId},
-      {"GradualRolloutUserId", GradualRolloutUserId},
-      {"RemoteAddress", RemoteAddress}
+      {"userWithId", ActiveForUsersWithId},
+      {"applicationHostname", ApplicationHostname},
+      {"default", Default},
+      {"gradualRolloutRandom", GradualRolloutRandom},
+      {"gradualRolloutSessionId", GradualRolloutSessionId},
+      {"gradualRolloutUserId", GradualRolloutUserId},
+      {"remoteAddress", RemoteAddress}
     ]
   end
 end
