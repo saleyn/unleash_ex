@@ -12,23 +12,23 @@ defmodule Unleash.Features do
 
   def from_map(_), do: %__MODULE__{}
 
-  def enabled?(nil, _feature), do: false
+  def enabled?(nil, _feature, _context), do: false
 
-  def enabled?(%__MODULE__{features: nil}, _feature), do: false
+  def enabled?(%__MODULE__{features: nil}, _feature, _context), do: false
 
-  def enabled?(%__MODULE__{}, nil), do: false
+  def enabled?(%__MODULE__{}, nil, _context), do: false
 
-  def enabled?(%__MODULE__{features: features} = state, feat)
+  def enabled?(%__MODULE__{features: features} = state, feat, context)
       when is_list(features) and is_atom(feat) do
-    enabled?(state, Atom.to_string(feat))
+    enabled?(state, Atom.to_string(feat), context)
   end
 
-  def enabled?(%__MODULE__{features: features}, feat)
+  def enabled?(%__MODULE__{features: features}, feat, context)
       when is_list(features) and is_binary(feat) do
     features
     |> IO.inspect()
     |> Enum.find(fn feature -> compare(feature.name, feat) end)
-    |> Feature.enabled?()
+    |> Feature.enabled?(context)
   end
 
   defp compare(n1, n2), do: String.downcase(n1) == String.downcase(n2)

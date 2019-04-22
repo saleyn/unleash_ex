@@ -1,5 +1,4 @@
 defmodule Unleash.Feature do
-  alias Unleash.Config
   alias Unleash.Strategy
   require Logger
 
@@ -19,13 +18,13 @@ defmodule Unleash.Feature do
 
   def from_map(_), do: %__MODULE__{}
 
-  def enabled?(nil), do: false
+  def enabled?(nil, _context), do: false
 
-  def enabled?(%__MODULE__{enabled: enabled, strategies: strat})
+  def enabled?(%__MODULE__{enabled: enabled, strategies: strat}, _context)
       when is_list(strat) and length(strat) == 0,
       do: enabled
 
-  def enabled?(%__MODULE__{enabled: enabled, strategies: strat} = feature)
+  def enabled?(%__MODULE__{enabled: enabled, strategies: strat} = feature, context)
       when is_list(strat) do
     Logger.debug(fn ->
       strat
@@ -36,7 +35,7 @@ defmodule Unleash.Feature do
 
     strat
     |> Enum.map(fn strategy ->
-      Strategy.enabled?(strategy, %{})
+      Strategy.enabled?(strategy, context)
     end)
     |> Enum.any?(fn enabled? -> enabled or enabled? end)
     |> Kernel.and(enabled)
