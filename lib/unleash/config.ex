@@ -20,7 +20,11 @@ defmodule Unleash.Config do
   end
 
   def strategies() do
-    Unleash.Strategies.strategies()
+    strategy_module =
+      application()
+      |> Application.get_env(:strategies)
+
+    strategy_module.strategies()
   end
 
   defp application() do

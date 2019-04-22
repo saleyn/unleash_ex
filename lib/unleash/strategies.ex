@@ -9,6 +9,8 @@ defmodule Unleash.Strategies do
     RemoteAddress
   }
 
+  @callback strategies :: list({String.t(), module})
+
   def strategies do
     [
       {"userWithId", ActiveForUsersWithId},

@@ -19,7 +19,8 @@ defmodule Unleash.MixProject do
         url: "http://localhost:4242",
         appname: "",
         instance_id: "",
-        metrics_period: 60 * 60 * 1000
+        metrics_period: 60 * 60 * 1000,
+        strategies: Unleash.Strategies
       ],
       mod: {Unleash, []}
     ]
