@@ -20,7 +20,8 @@ defmodule Unleash.MixProject do
         appname: "",
         instance_id: "",
         metrics_period: 60 * 60 * 1000
-      ]
+      ],
+      mod: {Unleash, []}
     ]
   end
 

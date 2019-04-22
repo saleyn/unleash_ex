@@ -1,18 +1,19 @@
 defmodule Unleash do
-  @moduledoc """
-  Documentation for Unleash.
-  """
+  use Application
 
-  @doc """
-  Hello world.
+  alias Unleash.Repo
+  alias Unleash.Feature
 
-  ## Examples
+  def enabled?(feature, context \\ %{}) do
+    Repo.get_feature(feature)
+    |> Feature.enabled?(context)
+  end
 
-      iex> Unleash.hello()
-      :world
+  def start(_type, _args) do
+    children = [
+      Repo
+    ]
 
-  """
-  def hello do
-    :world
+    Supervisor.start_link(children, strategy: :one_for_one)
   end
 end
