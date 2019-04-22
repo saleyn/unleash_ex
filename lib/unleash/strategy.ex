@@ -1,4 +1,6 @@
 defmodule Unleash.Strategy do
+  require Logger
+
   alias Unleash.Config
 
   defmacro __using__(opts) do
@@ -14,13 +16,13 @@ defmodule Unleash.Strategy do
       @name unquote(name)
 
       def check_enabled(params, context) do
-        case enabled?(params, context) do
-          {result, opts} -> log_result(result, opts)
-          result -> result
-        end
+        enabled?(params, context)
+        |> log_result()
       end
 
-      defp log_result(result, opts) when is_map(opts) do
+      defp log_result(result) when is_boolean(result), do: result
+
+      defp log_result({result, opts}) when is_map(opts) do
         Logger.debug(fn ->
           opts
           |> Stream.map(fn {k, v} -> "#{k}: #{v}" end)
@@ -30,17 +32,19 @@ defmodule Unleash.Strategy do
 
         result
       end
+
+      defp log_result({result, _opts}), do: result
     end
   end
 
-  @callback enabled?(params :: Map.t(), context :: Map.t()) :: {boolean, Map.t()} | Map.t()
+  @callback enabled?(params :: Map.t(), context :: Map.t()) :: {boolean, Map.t()} | boolean
 
   def enabled?(%{"name" => name, "parameters" => params}, context) do
     {_name, module} =
       Config.strategies()
       |> Enum.find(fn {n, _mod} -> n == name end)
 
-    module.enabled?(params, context)
+    module.check_enabled(params, context)
   end
 
   def enabled?(_strat, _context), do: false

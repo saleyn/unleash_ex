@@ -37,6 +37,7 @@ defmodule Unleash.Client do
        ]}
     ]
     |> Tesla.client()
+  end
 
   defp tag_data(data) do
     data

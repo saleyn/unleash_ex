@@ -8,9 +8,6 @@ defmodule Unleash.Strategy.ApplicationHostname do
       {:ok, hostname} ->
         {Utils.in_list?(hostname, hostnames, &String.downcase/1),
          %{hostname: hostname, hostnames: hostnames}}
-
-      _ ->
-        false
     end
   end
 
