@@ -1,11 +1,19 @@
 defmodule Unleash.Client do
   alias Unleash.Config
+  alias Unleash.Features
   @appname "UNLEASH-APPNAME"
   @instance_id "UNLEASH-INSTANCEID"
 
   def features() do
     client()
     |> Tesla.get("/api/client/features")
+    |> case do
+      {:ok, tesla} -> tesla
+      error -> error
+    end
+    |> Map.from_struct()
+    |> Map.get(:body, %{})
+    |> Features.from_map()
   end
 
   def register(client), do: send_data("/api/client/register", client)

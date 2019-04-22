@@ -19,6 +19,10 @@ defmodule Unleash.Config do
     |> Application.get_env(:metrics_period, "")
   end
 
+  def strategies() do
+    Unleash.Strategies.strategies()
+  end
+
   defp application() do
     Application.get_application(__MODULE__)
   end
