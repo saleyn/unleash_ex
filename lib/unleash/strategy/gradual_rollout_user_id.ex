@@ -2,10 +2,10 @@ defmodule Unleash.Strategy.GradualRolloutUserId do
   use Unleash.Strategy, name: "GradualRolloutUserId"
   alias Unleash.Strategy.Utils
 
-  def enabled?(_params, %{session_id: ""}), do: false
+  def enabled?(_params, %{user_id: ""}), do: false
 
   def enabled?(%{"percentage" => percentage, "groupId" => group_id}, %{user_id: user_id})
-      when is_binary(percentage) and is_binary(group_id) and is_binary(user_id) do
+      when is_binary(group_id) and is_binary(user_id) do
     result =
       percentage
       |> Utils.parse_int()
@@ -15,7 +15,7 @@ defmodule Unleash.Strategy.GradualRolloutUserId do
   end
 
   def enabled?(%{"percentage" => _p} = params, %{user_id: _s} = context) do
-    enabled?(%{params | group_id: ""}, context)
+    enabled?(%{params | "groupId" => ""}, context)
   end
 
   def enabled?(_params, _context), do: false

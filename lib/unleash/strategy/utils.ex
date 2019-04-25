@@ -14,15 +14,17 @@ defmodule Unleash.Strategy.Utils do
   def in_list?(_list, _member, _transform), do: false
 
   def normalize(id, group_id) do
-    "#{id}:#{group_id}"
+    "#{group_id}:#{id}"
     |> Murmur.hash_x86_32()
     |> Integer.mod(@normalizer)
     |> Kernel.+(1)
   end
 
   @spec parse_int(x :: String.t()) :: non_neg_integer()
+  def parse_int(x) when is_integer(x), do: x
+
   def parse_int(x) do
-    with {i, _} <- Integer.parse(x),
+    with {i, ""} <- Integer.parse(x),
          true <- i >= 0 do
       i
     else

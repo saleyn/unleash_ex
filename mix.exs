@@ -29,7 +29,9 @@ defmodule Unleash.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:credo, "~>1.0", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:stream_data, "~> 0.4.3", only: [:test]},
       {:murmur, "~> 1.0"},
       {:tesla, "~> 1.2"},
       {:hackney, "~> 1.14.0"},

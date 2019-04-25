@@ -9,12 +9,14 @@ defmodule Unleash.Strategy.GradualRolloutRandom do
     end
   end
 
-  def enabled?(%{"percentage" => per}, _context) when is_number(per) do
-    enabled?(per)
+  def enabled?(%{"percentage" => percentage}, _context) when is_number(percentage) do
+    enabled?(percentage)
   end
 
+  def enabled?(_, _), do: false
+
   defp enabled?(percentage) do
-    rand = :random.uniform(100)
+    rand = :rand.uniform(100)
 
     {percentage >= rand, %{percentage: percentage, random: rand}}
   end
