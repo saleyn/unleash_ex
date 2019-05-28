@@ -4,7 +4,7 @@ defmodule Unleash do
   alias Unleash.Repo
   alias Unleash.Feature
 
-  @spec enabled?(feature :: atom | String.t(), context :: Map.t(), default :: boolean) :: boolean
+  @spec enabled?(atom() | String.t(), Map.t(), boolean) :: boolean
   def enabled?(feature, context \\ %{}, default \\ false) do
     case Repo.get_feature(feature) do
       %Feature{name: nil} -> default

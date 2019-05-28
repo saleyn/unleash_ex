@@ -37,7 +37,7 @@ defmodule Unleash.Strategy do
     end
   end
 
-  @callback enabled?(params :: Map.t(), context :: Map.t()) :: {boolean, Map.t()} | boolean
+  @callback enabled?(Map.t(), Map.t()) :: boolean() | {boolean(), Map.t()}
 
   def enabled?(%{"name" => name, "parameters" => params}, context) do
     {_name, module} =
