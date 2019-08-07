@@ -1,4 +1,5 @@
 defmodule Unleash.MixProject do
+  @moduledoc false
   use Mix.Project
 
   def project do
@@ -7,7 +8,8 @@ defmodule Unleash.MixProject do
       version: "0.1.0",
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      aliases: aliases()
     ]
   end
 
@@ -15,14 +17,6 @@ defmodule Unleash.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      env: [
-        url: "http://localhost:4242",
-        appname: "",
-        instance_id: "",
-        metrics_period: 10 * 60 * 1000,
-        features_period: 15 * 1000,
-        strategies: Unleash.Strategies
-      ],
       mod: {Unleash, []}
     ]
   end
@@ -39,6 +33,12 @@ defmodule Unleash.MixProject do
       {:jason, ">= 1.0.0"},
       {:mint, "~>0.1.0"},
       {:mojito, "~> 0.1.0"}
+    ]
+  end
+
+  defp aliases do
+    [
+      test: ["test --no-start"]
     ]
   end
 end

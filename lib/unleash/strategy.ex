@@ -16,7 +16,8 @@ defmodule Unleash.Strategy do
       @name unquote(name)
 
       def check_enabled(params, context) do
-        enabled?(params, context)
+        params
+        |> enabled?(context)
         |> log_result()
       end
 

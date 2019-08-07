@@ -21,7 +21,7 @@ defmodule Unleash.Feature do
   def enabled?(nil, _context), do: false
 
   def enabled?(%__MODULE__{enabled: enabled, strategies: strat}, _context)
-      when is_list(strat) and length(strat) == 0,
+      when is_list(strat) and strat == [],
       do: enabled
 
   def enabled?(%__MODULE__{enabled: enabled, strategies: strat} = feature, context)
