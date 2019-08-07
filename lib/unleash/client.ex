@@ -27,6 +27,17 @@ defmodule Unleash.Client do
     end
   end
 
+  def register_client(),
+    do:
+      register(%{
+        sdkVersion: "unleash_ex:",
+        strategies: Config.strategy_names(),
+        started:
+          DateTime.utc_now()
+          |> DateTime.to_iso8601(),
+        interval: Config.metrics_period()
+      })
+
   def register(client), do: send_data("/api/client/register", client)
 
   def metrics(met), do: send_data("/api/client/metrics", met)
@@ -52,7 +63,7 @@ defmodule Unleash.Client do
 
   defp tag_data(data) do
     data
-    |> Map.put(:app_name, Config.appname())
-    |> Map.put(:instance_id, Config.instance_id())
+    |> Map.put(:appName, Config.appname())
+    |> Map.put(:instanceId, Config.instance_id())
   end
 end

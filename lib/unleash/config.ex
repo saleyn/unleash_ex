@@ -1,7 +1,7 @@
 defmodule Unleash.Config do
   @url "http://localhost:4242"
-  @appname ""
-  @instance_id ""
+  @appname "test"
+  @instance_id "test"
   @metrics_period 10 * 60 * 1000
   @features_period 15 * 1000
   @strategies Unleash.Strategies
@@ -37,6 +37,15 @@ defmodule Unleash.Config do
       |> Application.get_env(:strategies, @strategies)
 
     strategy_module.strategies()
+  end
+
+  def strategy_names() do
+    strategy_module =
+      application()
+      |> Application.get_env(:strategies, @strategies)
+
+    strategy_module.strategies()
+    |> Enum.map(fn {n, _} -> n end)
   end
 
   defp application() do
