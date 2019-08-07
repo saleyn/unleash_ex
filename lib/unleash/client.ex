@@ -1,19 +1,30 @@
 defmodule Unleash.Client do
+  require Logger
+
   alias Unleash.Config
   alias Unleash.Features
   @appname "UNLEASH-APPNAME"
   @instance_id "UNLEASH-INSTANCEID"
 
   def features() do
-    client()
-    |> Tesla.get("/api/client/features")
-    |> case do
-      {:ok, tesla} -> tesla
-      error -> error
+    response =
+      client()
+      |> Tesla.get("/api/client/features")
+      |> case do
+        {:ok, tesla} -> tesla
+        error -> error
+      end
+
+    case response do
+      {:error, _} = error ->
+        Logger.error(inspect(error))
+
+      tesla ->
+        tesla
+        |> Map.from_struct()
+        |> Map.get(:body, %{})
+        |> Features.from_map()
     end
-    |> Map.from_struct()
-    |> Map.get(:body, %{})
-    |> Features.from_map()
   end
 
   def register(client), do: send_data("/api/client/register", client)

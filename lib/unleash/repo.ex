@@ -28,12 +28,12 @@ defmodule Unleash.Repo do
   end
 
   def handle_cast(:initialize, _state) do
-    with {:ok, features} <- Client.features() do
-      schedule_features()
+    features = Client.features()
+    schedule_features()
 
-      {:noreply, features}
-    else
-      {:error, r} -> {:stop, r}
+    case features do
+      {:error, _} -> {:noreply, %{}}
+      f -> {:noreply, f}
     end
   end
 
