@@ -3,21 +3,21 @@ defmodule Unleash.Features do
 
   defstruct version: "1", features: []
 
-  def from_map(map) when is_map(map) do
+  def from_map(%{"version" => version, "features" => features}) do
     {:ok,
      %__MODULE__{
-       version: map["version"],
-       features: Enum.map(map["features"], fn f -> Feature.from_map(f) end)
+       version: version,
+       features: Enum.map(features, &Feature.from_map/1)
      }}
   end
 
   def from_map(_), do: {:error, "failed to construct state"}
 
-  def get_feature(nil, _feat), do: %Feature{name: nil}
+  def get_feature(nil, _feat), do: nil
 
-  def get_feature(%__MODULE__{features: nil}, _feature), do: %Feature{}
+  def get_feature(%__MODULE__{features: nil}, _feature), do: nil
 
-  def get_feature(%__MODULE__{}, nil), do: %Feature{}
+  def get_feature(%__MODULE__{}, nil), do: nil
 
   def get_feature(%__MODULE__{features: features} = state, feat)
       when is_list(features) and is_atom(feat),
