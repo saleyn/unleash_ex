@@ -70,14 +70,17 @@ defmodule Unleash.Client do
   end
 
   defp client() do
+    headers =
+      Config.custom_headers()
+      |> Keyword.merge([
+        {@appname, Config.appname()},
+        {@instance_id, Config.instance_id()}
+      ])
+
     [
       {Tesla.Middleware.BaseUrl, Config.url()},
       Tesla.Middleware.JSON,
-      {Tesla.Middleware.Headers,
-       [
-         {@appname, Config.appname()},
-         {@instance_id, Config.instance_id()}
-       ]}
+      {Tesla.Middleware.Headers, headers}
     ]
     |> Tesla.client()
   end

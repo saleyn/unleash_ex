@@ -7,7 +7,8 @@ defmodule Unleash.Config do
     instance_id: "test",
     metrics_period: 10 * 60 * 1000,
     features_period: 15 * 1000,
-    strategies: Unleash.Strategies
+    strategies: Unleash.Strategies,
+    custom_http_headers: []
   ]
 
   def url() do
@@ -54,6 +55,11 @@ defmodule Unleash.Config do
 
   def backup_dir() do
     Path.join([System.tmp_dir!(), appname()])
+  end
+
+  def custom_headers() do
+    application_env()
+    |> Keyword.fetch!(:custom_http_headers)
   end
 
   defp application_env() do
