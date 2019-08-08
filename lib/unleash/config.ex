@@ -8,6 +8,7 @@ defmodule Unleash.Config do
     metrics_period: 10 * 60 * 1000,
     features_period: 15 * 1000,
     strategies: Unleash.Strategies,
+    backup_file: nil,
     custom_http_headers: []
   ]
 
@@ -50,11 +51,17 @@ defmodule Unleash.Config do
   end
 
   def backup_file() do
-    Path.join([backup_dir(), "repo.json"])
+    application_env()
+    |> Keyword.fetch!(:backup_file)
+    |> case do
+      nil -> Path.join([System.tmp_dir!(), appname(), "repo.json"])
+      f -> f
+    end
   end
 
   def backup_dir() do
-    Path.join([System.tmp_dir!(), appname()])
+    backup_file()
+    |> Path.dirname()
   end
 
   def custom_headers() do
