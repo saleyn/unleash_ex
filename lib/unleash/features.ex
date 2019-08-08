@@ -1,7 +1,21 @@
 defmodule Unleash.Features do
+  @moduledoc false
+
   alias Unleash.Feature
 
+  @derive Jason.Encoder
   defstruct version: "1", features: []
+
+  def from_map!(%{"version" => version, "features" => features}) do
+    %__MODULE__{
+      version: version,
+      features: Enum.map(features, &Feature.from_map/1)
+    }
+  end
+
+  def from_map!(_) do
+    raise ArgumentError, "failed to construct state"
+  end
 
   def from_map(%{"version" => version, "features" => features}) do
     {:ok,

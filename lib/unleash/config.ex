@@ -1,4 +1,6 @@
 defmodule Unleash.Config do
+  @moduledoc false
+
   @defaults [
     url: "http://localhost:4242",
     appname: "test",
@@ -44,6 +46,14 @@ defmodule Unleash.Config do
   def strategy_names() do
     strategies()
     |> Enum.map(fn {n, _} -> n end)
+  end
+
+  def backup_file() do
+    Path.join([backup_dir(), "repo.json"])
+  end
+
+  def backup_dir() do
+    Path.join([System.tmp_dir!(), appname()])
   end
 
   defp application_env() do

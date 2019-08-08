@@ -1,5 +1,6 @@
 defmodule Unleash.Repo do
   use GenServer
+  require Logger
 
   alias Unleash.Client
   alias Unleash.Features
@@ -28,13 +29,51 @@ defmodule Unleash.Repo do
   end
 
   def handle_info(:initialize, state) do
-    features = Client.features()
+    response = Client.features()
     schedule_features()
 
-    case features do
-      {:error, _} -> {:noreply, state}
-      {:ok, f} -> {:noreply, f}
+    features =
+      case response do
+        {:error, _} -> read_state(state)
+        {:ok, f} -> f
+      end
+
+    if features === state do
+      {:noreply, features}
+    else
+      write_state(features)
     end
+  end
+
+  defp read_state(%Features{features: []} = state) do
+    if File.exists?(Config.backup_file()) do
+      Config.backup_file()
+      |> File.read!()
+      |> Jason.decode!()
+      |> Features.from_map!()
+    else
+      state
+    end
+  end
+
+  defp read_state(state), do: state
+
+  defp write_state(state) do
+    if not File.dir?(Config.backup_dir()) do
+      Config.backup_dir()
+      |> File.mkdir_p!()
+    end
+
+    content = Jason.encode_to_iodata!(state)
+
+    Config.backup_file()
+    |> File.write!(content)
+
+    Logger.debug(fn ->
+      ["Wrote ", content, " to file ", Config.backup_file()]
+    end)
+
+    {:noreply, state}
   end
 
   defp initialize() do

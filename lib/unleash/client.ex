@@ -1,4 +1,6 @@
 defmodule Unleash.Client do
+  @moduledoc false
+
   require Logger
 
   alias Unleash.Config

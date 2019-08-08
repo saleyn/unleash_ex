@@ -1,7 +1,10 @@
 defmodule Unleash.Feature do
+  @moduledoc false
+
   alias Unleash.Strategy
   require Logger
 
+  @derive Jason.Encoder
   defstruct name: "",
             description: "",
             enabled: false,
