@@ -9,7 +9,9 @@ defmodule Unleash.Config do
     features_period: 15 * 1000,
     strategies: Unleash.Strategies,
     backup_file: nil,
-    custom_http_headers: []
+    custom_http_headers: [],
+    disable_client: false,
+    disable_metrics: false
   ]
 
   def url() do
@@ -67,6 +69,16 @@ defmodule Unleash.Config do
   def custom_headers() do
     application_env()
     |> Keyword.fetch!(:custom_http_headers)
+  end
+
+  def disable_client() do
+    application_env()
+    |> Keyword.fetch!(:disable_client)
+  end
+
+  def disable_metrics() do
+    application_env()
+    |> Keyword.fetch!(:disable_metrics)
   end
 
   defp application_env() do

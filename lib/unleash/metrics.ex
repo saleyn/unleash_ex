@@ -19,7 +19,10 @@ defmodule Unleash.Metrics do
   end
 
   def add_metric({feature, enabled?}) do
-    GenServer.cast(Unleash.Metrics, {:add_metric, feature, enabled?})
+    unless Config.disable_metrics() do
+      GenServer.cast(Unleash.Metrics, {:add_metric, feature, enabled?})
+    end
+
     enabled?
   end
 
