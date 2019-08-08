@@ -1,8 +1,10 @@
 defmodule Unleash.Metrics do
   use GenServer
+  require Logger
 
   alias Unleash.Client
   alias Unleash.Config
+  alias Unleash.Feature
 
   @type t :: %{stop: String.t(), start: String.t(), toggles: Map.t()}
 
@@ -11,15 +13,17 @@ defmodule Unleash.Metrics do
   end
 
   def start_link(state) do
-    GenServer.start_link(__MODULE__, state)
-    schedule_metrics()
+    {:ok, pid} = GenServer.start_link(__MODULE__, state, name: Unleash.Metrics)
+    initialize()
+    {:ok, pid}
   end
 
-  def add_metric(pid, feature, enabled?) do
-    GenServer.call(pid, {:add_metric, feature, enabled?})
+  def add_metric({feature, enabled?}) do
+    GenServer.cast(Unleash.Metrics, {:add_metric, feature, enabled?})
+    enabled?
   end
 
-  def handle_call({:add_metric, feature, enabled?}, state) do
+  def handle_cast({:add_metric, feature, enabled?}, state) do
     state = handle_metric(state, feature, enabled?)
     {:noreply, state}
   end
@@ -29,15 +33,19 @@ defmodule Unleash.Metrics do
     |> to_bucket()
     |> Client.metrics()
 
+    Logger.info(fn ->
+      "Sending metrics: #{inspect(state, pretty: true)}"
+    end)
+
     schedule_metrics()
 
     {:noreply, init_state()}
   end
 
-  defp handle_metric(%{toggles: features} = state, feature, enabled?) do
+  defp handle_metric(%{toggles: features} = state, %Feature{name: feature}, enabled?) do
     features
     |> update_metric(feature, enabled?)
-    |> (&%{state | toggles: &1}).()
+    |> (&Map.put(state, :toggles, &1)).()
   end
 
   defp update_metric(features, feature, true) do
@@ -50,7 +58,7 @@ defmodule Unleash.Metrics do
     |> Map.update(feature, %{yes: 0, no: 1}, &Map.update!(&1, :no, fn x -> x + 1 end))
   end
 
-  defp to_bucket(state), do: %{bucket: %{state | stop: current_date()}}
+  defp to_bucket(state), do: %{bucket: Map.put(state, :stop, current_date())}
 
   defp current_date() do
     DateTime.utc_now()
@@ -59,6 +67,10 @@ defmodule Unleash.Metrics do
 
   defp init_state() do
     %{start: current_date(), toggles: %{}}
+  end
+
+  defp initialize() do
+    Process.send(Unleash.Metrics, :send_metrics, [])
   end
 
   defp schedule_metrics() do

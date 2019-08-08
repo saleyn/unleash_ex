@@ -17,7 +17,7 @@ defmodule Unleash.Client do
 
     case response do
       {:error, _} = error ->
-        Logger.error(inspect(error))
+        error
 
       tesla ->
         tesla
@@ -43,9 +43,28 @@ defmodule Unleash.Client do
   def metrics(met), do: send_data("/api/client/metrics", met)
 
   defp send_data(url, data) do
-    data
-    |> tag_data()
-    |> (&Tesla.post(client(), url, &1)).()
+    result =
+      data
+      |> tag_data()
+      |> (&Tesla.post(client(), url, &1)).()
+
+    Logger.debug(fn ->
+      "Request sent to #{url} with #{inspect(data, pretty: true)}"
+    end)
+
+    case result do
+      {:ok, r} ->
+        Logger.debug(fn ->
+          "Result from #{url} was #{inspect(r, pretty: true)}"
+        end)
+
+      {:error, e} ->
+        Logger.error(fn ->
+          "Request #{inspect(data, pretty: true)} failed with result #{inspect(e, pretty: true)}"
+        end)
+    end
+
+    result
   end
 
   defp client() do

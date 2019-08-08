@@ -27,18 +27,18 @@ defmodule Unleash.Repo do
     {:reply, feature, state}
   end
 
-  def handle_cast(:initialize, _state) do
+  def handle_info(:initialize, state) do
     features = Client.features()
     schedule_features()
 
     case features do
-      {:error, _} -> {:noreply, %{}}
-      f -> {:noreply, f}
+      {:error, _} -> {:noreply, state}
+      {:ok, f} -> {:noreply, f}
     end
   end
 
   defp initialize() do
-    GenServer.cast(Unleash.Repo, :initialize)
+    Process.send(Unleash.Repo, :initialize, [])
   end
 
   defp schedule_features() do

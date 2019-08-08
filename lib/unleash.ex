@@ -13,10 +13,13 @@ defmodule Unleash do
 
   @spec enabled?(atom() | String.t(), Map.t(), boolean) :: boolean
   def enabled?(feature, context \\ %{}, default \\ false) do
-    case Repo.get_feature(feature) do
-      %Feature{name: nil} -> default
-      feature -> Feature.enabled?(feature, context)
+    feature
+    |> Repo.get_feature()
+    |> case do
+      %Feature{name: nil} -> {feature, default}
+      feature -> {feature, Feature.enabled?(feature, context)}
     end
+    |> Metrics.add_metric()
   end
 
   def start(_type, _args) do
@@ -25,7 +28,7 @@ defmodule Unleash do
       Metrics
     ]
 
-    result = Client.register_client()
+    Client.register_client()
 
     Supervisor.start_link(children, strategy: :one_for_one)
   end
