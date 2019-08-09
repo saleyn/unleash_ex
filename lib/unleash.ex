@@ -13,11 +13,11 @@ defmodule Unleash do
   use Application
   require Logger
 
-  alias Unleash.Repo
   alias Unleash.Client
-  alias Unleash.Metrics
-  alias Unleash.Feature
   alias Unleash.Config
+  alias Unleash.Feature
+  alias Unleash.Metrics
+  alias Unleash.Repo
 
   @typedoc """
   The context needed for a few activation strategies. Check their documentation

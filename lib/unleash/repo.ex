@@ -4,8 +4,8 @@ defmodule Unleash.Repo do
   require Logger
 
   alias Unleash.Client
-  alias Unleash.Features
   alias Unleash.Config
+  alias Unleash.Features
 
   def init(_) do
     {:ok, %Features{}}
@@ -77,11 +77,11 @@ defmodule Unleash.Repo do
     {:noreply, state}
   end
 
-  defp initialize() do
+  defp initialize do
     Process.send(Unleash.Repo, :initialize, [])
   end
 
-  defp schedule_features() do
+  defp schedule_features do
     Process.send_after(self(), :initialize, Config.features_period())
   end
 end

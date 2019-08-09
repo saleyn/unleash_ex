@@ -8,7 +8,7 @@ defmodule Unleash.Client do
   @appname "UNLEASH-APPNAME"
   @instance_id "UNLEASH-INSTANCEID"
 
-  def features() do
+  def features do
     response =
       client()
       |> Tesla.get("/api/client/features")
@@ -69,7 +69,7 @@ defmodule Unleash.Client do
     result
   end
 
-  defp client() do
+  defp client do
     headers =
       Config.custom_headers()
       |> Keyword.merge([

@@ -2,8 +2,8 @@ defmodule Unleash.FeaturesTest do
   use ExUnit.Case
   use ExUnitProperties
 
-  alias Unleash.Features
   alias Unleash.Feature
+  alias Unleash.Features
 
   describe "from_map" do
     test "returns a Features struct" do
