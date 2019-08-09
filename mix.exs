@@ -2,6 +2,8 @@ defmodule Unleash.MixProject do
   @moduledoc false
   use Mix.Project
 
+  @gitlab_url "https://www.gitlab.com/afontaine/unleash_ex"
+
   def project do
     [
       app: :unleash,
@@ -11,8 +13,18 @@ defmodule Unleash.MixProject do
       deps: deps(),
       aliases: aliases(),
       name: "Unleash",
-      source_url: "https://www.gitlab.com/afontaine/unleash_ex",
+      description: "An Unleash Feature Flag client for Elixir",
+      source_url: @gitlab_url,
+      homepage_url: @gitlab_url,
       docs: docs(),
+      files: ~w(mix.exs lib LICENSE README.md CHANGELOG.md),
+      package: [
+        maintainers: ["Andrew Fontaine"],
+        licenses: ["MIT"],
+        links: %{
+          "GitLab" => @gitlab_url
+        }
+      ],
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
         coveralls: :test,
@@ -37,14 +49,13 @@ defmodule Unleash.MixProject do
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 0.5", only: :dev, runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
+      {:eliver, "~> 2.0", only: [:dev], runtime: false},
       {:stream_data, "~> 0.4.3", only: :test},
       {:excoveralls, "~> 0.8", only: :test},
       {:murmur, "~> 1.0"},
       {:tesla, "~> 1.2"},
-      {:hackney, "~> 1.14.0"},
-      {:jason, ">= 1.0.0"},
-      {:mint, "~>0.1.0"},
-      {:mojito, "~> 0.1.0"}
+      {:hackney, "~> 1.14"},
+      {:jason, "~> 1.1"}
     ]
   end
 
