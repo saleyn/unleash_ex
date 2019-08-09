@@ -7,10 +7,12 @@ defmodule Unleash.Client do
   alias Unleash.Features
   @appname "UNLEASH-APPNAME"
   @instance_id "UNLEASH-INSTANCEID"
+  @if_none_match "If-None-Match"
 
-  def features do
+  def features(etag \\ nil) do
     response =
-      client()
+      etag
+      |> client()
       |> Tesla.get("/api/client/features")
       |> case do
         {:ok, tesla} -> tesla
@@ -18,14 +20,8 @@ defmodule Unleash.Client do
       end
 
     case response do
-      {:error, _} = error ->
-        error
-
-      tesla ->
-        tesla
-        |> Map.from_struct()
-        |> Map.get(:body, %{})
-        |> Features.from_map()
+      {:error, _} = error -> error
+      tesla -> handle_feature_response(tesla)
     end
   end
 
@@ -43,6 +39,23 @@ defmodule Unleash.Client do
   def register(client), do: send_data("/api/client/register", client)
 
   def metrics(met), do: send_data("/api/client/metrics", met)
+
+  defp handle_feature_response(tesla) do
+    features =
+      tesla
+      |> Map.from_struct()
+      |> Map.get(:body, %{})
+      |> Features.from_map!()
+
+    etag =
+      tesla
+      |> Map.from_struct()
+      |> Map.get(:headers, [])
+      |> Enum.into(%{})
+      |> Map.get("etag", nil)
+
+    {etag, features}
+  end
 
   defp send_data(url, data) do
     result =
@@ -69,13 +82,17 @@ defmodule Unleash.Client do
     result
   end
 
-  defp client do
+  defp client(etag \\ nil) do
     headers =
       Config.custom_headers()
       |> Keyword.merge([
         {@appname, Config.appname()},
         {@instance_id, Config.instance_id()}
       ])
+
+    if etag do
+      [{@if_none_match, etag} | headers]
+    end
 
     [
       {Tesla.Middleware.BaseUrl, Config.url()},
