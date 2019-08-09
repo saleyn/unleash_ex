@@ -29,14 +29,15 @@ defmodule Unleash.Repo do
     {:reply, feature, state}
   end
 
-  def handle_info(:initialize, state) do
-    response = Client.features()
-    schedule_features()
+  def handle_info({:initialize, etag}, state) do
+    {etag, response} = Client.features(etag)
+
+    schedule_features(etag)
 
     features =
       case response do
         {:error, _} -> read_state(state)
-        {:ok, f} -> f
+        f -> f
       end
 
     if features === state do
@@ -81,7 +82,7 @@ defmodule Unleash.Repo do
     Process.send(Unleash.Repo, :initialize, [])
   end
 
-  defp schedule_features do
-    Process.send_after(self(), :initialize, Config.features_period())
+  defp schedule_features(etag) do
+    Process.send_after(self(), {:initialize, etag}, Config.features_period())
   end
 end
