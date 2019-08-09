@@ -1,10 +1,39 @@
 image: elixir:latest
 
+variables:
+  MIX_ENV: "test"
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - deps/
+
 before_script:
   - mix local.rebar --force
   - mix local.hex --force
   - mix deps.get
 
-mix:
+stages:
+  - build
+  - check
+
+build:
+  stage: build
+  artifacts:
+    paths:
+      - _build/
   script:
-  - mix test --cover
+    - mix compile
+
+test:
+  stage: check
+  script:
+    - mix test --cover
+  artifacts:
+    reports:
+      junit: _build/test/lib/unleash/test-junit-report.xml
+
+lint:
+  stage: check
+  script:
+    - mix credo --strict

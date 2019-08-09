@@ -14,45 +14,45 @@ defmodule Unleash.Config do
     disable_metrics: false
   ]
 
-  def url() do
+  def url do
     application_env()
     |> Keyword.fetch!(:url)
   end
 
-  def appname() do
+  def appname do
     application_env()
     |> Keyword.fetch!(:appname)
   end
 
-  def instance_id() do
+  def instance_id do
     application_env()
     |> Keyword.fetch!(:instance_id)
   end
 
-  def metrics_period() do
+  def metrics_period do
     application_env()
     |> Keyword.fetch!(:metrics_period)
   end
 
-  def features_period() do
+  def features_period do
     application_env()
     |> Keyword.fetch!(:features_period)
   end
 
-  def strategies() do
+  def strategies do
     strategy_module =
       application_env()
       |> Keyword.fetch!(:strategies)
 
-    strategy_module.strategies()
+    strategy_module.strategies
   end
 
-  def strategy_names() do
+  def strategy_names do
     strategies()
     |> Enum.map(fn {n, _} -> n end)
   end
 
-  def backup_file() do
+  def backup_file do
     application_env()
     |> Keyword.fetch!(:backup_file)
     |> case do
@@ -61,27 +61,27 @@ defmodule Unleash.Config do
     end
   end
 
-  def backup_dir() do
+  def backup_dir do
     backup_file()
     |> Path.dirname()
   end
 
-  def custom_headers() do
+  def custom_headers do
     application_env()
     |> Keyword.fetch!(:custom_http_headers)
   end
 
-  def disable_client() do
+  def disable_client do
     application_env()
     |> Keyword.fetch!(:disable_client)
   end
 
-  def disable_metrics() do
+  def disable_metrics do
     application_env()
     |> Keyword.fetch!(:disable_metrics)
   end
 
-  defp application_env() do
+  defp application_env do
     config =
       __MODULE__
       |> Application.get_application()

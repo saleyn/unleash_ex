@@ -29,7 +29,7 @@ defmodule Unleash.Client do
     end
   end
 
-  def register_client(),
+  def register_client,
     do:
       register(%{
         sdkVersion: "unleash_ex:",

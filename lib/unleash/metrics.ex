@@ -64,20 +64,20 @@ defmodule Unleash.Metrics do
 
   defp to_bucket(state), do: %{bucket: Map.put(state, :stop, current_date())}
 
-  defp current_date() do
+  defp current_date do
     DateTime.utc_now()
     |> DateTime.to_iso8601()
   end
 
-  defp init_state() do
+  defp init_state do
     %{start: current_date(), toggles: %{}}
   end
 
-  defp initialize() do
+  defp initialize do
     Process.send(Unleash.Metrics, :send_metrics, [])
   end
 
-  defp schedule_metrics() do
+  defp schedule_metrics do
     Process.send_after(self(), :send_metrics, Config.metrics_period())
   end
 end
