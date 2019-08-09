@@ -12,7 +12,14 @@ defmodule Unleash.MixProject do
       aliases: aliases(),
       name: "Unleash",
       source_url: "https://www.gitlab.com/afontaine/unleash_ex",
-      docs: docs()
+      docs: docs(),
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test
+      ]
     ]
   end
 
@@ -28,9 +35,10 @@ defmodule Unleash.MixProject do
   defp deps do
     [
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:dialyxir, "~> 0.5", only: :dev, runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
-      {:stream_data, "~> 0.4.3", only: [:test]},
+      {:stream_data, "~> 0.4.3", only: :test},
+      {:excoveralls, "~> 0.8", only: :test},
       {:murmur, "~> 1.0"},
       {:tesla, "~> 1.2"},
       {:hackney, "~> 1.14.0"},
