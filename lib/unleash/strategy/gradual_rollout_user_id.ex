@@ -1,4 +1,12 @@
 defmodule Unleash.Strategy.GradualRolloutUserId do
+  @moduledoc """
+  Requires `:user_id` in `t:Unleash.context/0`
+
+  Based on the
+  [`gradualRolloutUserId`](https://unleash.github.io/docs/activation_strategy#gradualrolloutuserid)
+  strategy.
+  """
+
   use Unleash.Strategy, name: "GradualRolloutUserId"
   alias Unleash.Strategy.Utils
 

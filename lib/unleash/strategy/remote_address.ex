@@ -1,4 +1,12 @@
 defmodule Unleash.Strategy.RemoteAddress do
+  @moduledoc """
+  Requires `:remote_address` in `t:Unleash.context/0`
+
+  Based on the
+  [`remoteAddress`](https://unleash.github.io/docs/activation_strategy#remoteaddress)
+  strategy.
+  """
+
   use Unleash.Strategy, name: "RemoteAddress"
 
   alias Unleash.Strategy.Utils

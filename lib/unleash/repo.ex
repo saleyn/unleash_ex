@@ -1,4 +1,5 @@
 defmodule Unleash.Repo do
+  @moduledoc false
   use GenServer
   require Logger
 

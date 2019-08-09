@@ -1,4 +1,12 @@
 defmodule Unleash.Strategy.GradualRolloutSessionId do
+  @moduledoc """
+  Requires `:session_id` in `t:Unleash.context/0`
+
+  Based on the
+  [`gradualRolloutSessionId`](https://unleash.github.io/docs/activation_strategy#gradualrolloutsessionid)
+  strategy.
+  """
+
   use Unleash.Strategy, name: "GradualRolloutSessionId"
   alias Unleash.Strategy.Utils
 

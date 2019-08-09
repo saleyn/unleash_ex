@@ -1,4 +1,12 @@
 defmodule Unleash.Strategy.GradualRolloutRandom do
+  @moduledoc """
+  Does not require anything in `t:Unleash.context/0`
+
+  Based on the
+  [`gradualRollourRandom`](https://unleash.github.io/docs/activation_strategy#gradualrolloutrandom)
+  strategy.
+  """
+
   use Unleash.Strategy, name: "GradualRolloutRandom"
 
   @impl Strategy

@@ -6,24 +6,28 @@ defmodule Unleash.Strategy.RemoteAddressTest do
 
   describe "enabled?" do
     property "returns true if an IP is in the list" do
-      check all list <-
-                  map(nonempty(list_of(string(:alphanumeric, min_length: 1))), fn list ->
-                    Enum.map(list, &String.replace(&1, ",", ""))
-                  end),
-                address <- member_of(list),
-                ips = Enum.join(list, ",") do
+      check all(
+              list <-
+                map(nonempty(list_of(string(:alphanumeric, min_length: 1))), fn list ->
+                  Enum.map(list, &String.replace(&1, ",", ""))
+                end),
+              address <- member_of(list),
+              ips = Enum.join(list, ",")
+            ) do
         assert {true, _} = RemoteAddress.enabled?(%{"ips" => ips}, %{remote_address: address})
       end
     end
 
     property "returns false if an IP is not in the list" do
-      check all list <-
-                  map(nonempty(list_of(string(:alphanumeric, min_length: 1))), fn list ->
-                    Enum.map(list, &String.replace(&1, ",", ""))
-                  end),
-                address <- string(:alphanumeric, min_length: 1),
-                address not in list,
-                ips = Enum.join(list, ",") do
+      check all(
+              list <-
+                map(nonempty(list_of(string(:alphanumeric, min_length: 1))), fn list ->
+                  Enum.map(list, &String.replace(&1, ",", ""))
+                end),
+              address <- string(:alphanumeric, min_length: 1),
+              address not in list,
+              ips = Enum.join(list, ",")
+            ) do
         assert {false, _} = RemoteAddress.enabled?(%{"ips" => ips}, %{remote_address: address})
       end
     end

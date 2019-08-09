@@ -2,9 +2,9 @@ defmodule Unleash.Config do
   @moduledoc false
 
   @defaults [
-    url: "http://localhost:4242",
-    appname: "test",
-    instance_id: "test",
+    url: "",
+    appname: "",
+    instance_id: "",
     metrics_period: 10 * 60 * 1000,
     features_period: 15 * 1000,
     strategies: Unleash.Strategies,
@@ -82,9 +82,11 @@ defmodule Unleash.Config do
   end
 
   defp application_env() do
-    __MODULE__
-    |> Application.get_application()
-    |> Application.get_env(Unleash, [])
-    |> Keyword.merge(@defaults)
+    config =
+      __MODULE__
+      |> Application.get_application()
+      |> Application.get_env(Unleash, [])
+
+    Keyword.merge(@defaults, config)
   end
 end

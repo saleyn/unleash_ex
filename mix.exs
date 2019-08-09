@@ -9,7 +9,10 @@ defmodule Unleash.MixProject do
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases()
+      aliases: aliases(),
+      name: "Unleash",
+      source_url: "https://www.gitlab.com/afontaine/unleash_ex",
+      docs: docs()
     ]
   end
 
@@ -26,6 +29,7 @@ defmodule Unleash.MixProject do
     [
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:stream_data, "~> 0.4.3", only: [:test]},
       {:murmur, "~> 1.0"},
       {:tesla, "~> 1.2"},
@@ -39,6 +43,20 @@ defmodule Unleash.MixProject do
   defp aliases do
     [
       test: ["test --no-start"]
+    ]
+  end
+
+  defp docs do
+    [
+      main: "readme",
+      extras: ["README.md"],
+      deps: [
+        tesla: "https://hexdocs.pm/tesla",
+        murmur: "https://hexdocs.pm/murmur/readme.html"
+      ],
+      groups_for_modules: [
+        Strategies: ~r"Strateg(y|ies)\."
+      ]
     ]
   end
 end

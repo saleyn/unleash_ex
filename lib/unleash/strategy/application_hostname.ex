@@ -1,4 +1,12 @@
 defmodule Unleash.Strategy.ApplicationHostname do
+  @moduledoc """
+  Does not require anything in `t:Unleash.context/0`
+
+  Based on the
+  [`applicationHostname`](https://unleash.github.io/docs/activation_strategy#applicationhostname)
+  strategy.
+
+  """
   use Unleash.Strategy, name: "ApplicationHostname"
 
   alias Unleash.Strategy.Utils
