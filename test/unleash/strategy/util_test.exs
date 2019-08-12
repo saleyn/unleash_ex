@@ -64,8 +64,8 @@ defmodule Unleash.Strategy.UtilsTest do
 
     property "returns 0 if given negative numbers" do
       check all(
-              i <- integer(),
-              i = abs(i) * -1,
+              i <- positive_integer(),
+              i = i * -1,
               x = Integer.to_string(i)
             ) do
         assert 0 = Utils.parse_int(x)
