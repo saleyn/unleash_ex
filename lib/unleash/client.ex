@@ -8,6 +8,7 @@ defmodule Unleash.Client do
   @appname "UNLEASH-APPNAME"
   @instance_id "UNLEASH-INSTANCEID"
   @if_none_match "If-None-Match"
+  @sdk_version "unleash_ex:#{Mix.Project.config()[:version]}"
 
   def features(etag \\ nil) do
     response =
@@ -28,7 +29,7 @@ defmodule Unleash.Client do
   def register_client,
     do:
       register(%{
-        sdkVersion: "unleash_ex:",
+        sdkVersion: @sdk_version,
         strategies: Config.strategy_names(),
         started:
           DateTime.utc_now()

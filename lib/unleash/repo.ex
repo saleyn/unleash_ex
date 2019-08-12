@@ -79,7 +79,7 @@ defmodule Unleash.Repo do
   end
 
   defp initialize do
-    Process.send(Unleash.Repo, :initialize, [])
+    Process.send(Unleash.Repo, {:initialize, nil}, [])
   end
 
   defp schedule_features(etag) do
