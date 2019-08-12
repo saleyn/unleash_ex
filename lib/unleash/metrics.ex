@@ -33,17 +33,23 @@ defmodule Unleash.Metrics do
   end
 
   def handle_info(:send_metrics, state) do
-    state
-    |> to_bucket()
-    |> Client.metrics()
-
-    Logger.info(fn ->
-      "Sending metrics: #{inspect(state, pretty: true)}"
-    end)
+    state =
+      state
+      |> to_bucket()
+      |> log_metrics()
+      |> Client.metrics()
 
     schedule_metrics()
 
     {:noreply, init_state()}
+  end
+
+  defp log_metrics(state) do
+    Logger.info(fn ->
+      "Sending metrics: #{inspect(state, pretty: true)}"
+    end)
+
+    state
   end
 
   defp handle_metric(%{toggles: features} = state, %Feature{name: feature}, enabled?) do

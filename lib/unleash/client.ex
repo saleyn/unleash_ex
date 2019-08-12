@@ -21,7 +21,7 @@ defmodule Unleash.Client do
       end
 
     case response do
-      {:error, _} = error -> error
+      {:error, _} = error -> {nil, error}
       tesla -> handle_feature_response(tesla)
     end
   end

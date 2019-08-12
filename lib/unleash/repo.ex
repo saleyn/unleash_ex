@@ -29,21 +29,32 @@ defmodule Unleash.Repo do
     {:reply, feature, state}
   end
 
-  def handle_info({:initialize, etag}, state) do
-    {etag, response} = Client.features(etag)
+  def handle_info({:initialize, etag, retries}, state) do
+    if retries > 0 or retries <= -1 do
+      {etag, response} = Client.features(etag)
 
-    schedule_features(etag)
+      features =
+        case response do
+          {:error, _} ->
+            state
+            |> read_state()
+            |> schedule_features(etag, retries - 1)
 
-    features =
-      case response do
-        {:error, _} -> read_state(state)
-        f -> f
+          f ->
+            schedule_features(f, etag)
+        end
+
+      if features === state do
+        {:noreply, features}
+      else
+        write_state(features)
       end
-
-    if features === state do
-      {:noreply, features}
     else
-      write_state(features)
+      Logger.debug(fn ->
+        "Retries === 0, disabling polling"
+      end)
+
+      {:noreply, state}
     end
   end
 
@@ -79,10 +90,22 @@ defmodule Unleash.Repo do
   end
 
   defp initialize do
-    Process.send(Unleash.Repo, {:initialize, nil}, [])
+    Process.send(Unleash.Repo, {:initialize, nil, Config.retries()}, [])
   end
 
-  defp schedule_features(etag) do
-    Process.send_after(self(), {:initialize, etag}, Config.features_period())
+  defp schedule_features(state, etag, retries \\ Config.retries()) do
+    Logger.debug(fn ->
+      retries_log =
+        if retries >= 0 do
+          ", retries: #{retries}"
+        else
+          ""
+        end
+
+      "etag: #{etag}" <> retries_log
+    end)
+
+    Process.send_after(self(), {:initialize, etag, retries}, Config.features_period())
+    state
   end
 end
