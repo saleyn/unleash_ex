@@ -60,8 +60,9 @@ config :unleash, Unleash,
 `:custom_http_headers` should follow the format prescribed by
 `Tesla.Middleware.Headers`
 
-`:strategies` should be a module that matches the callbacks in
-`Unleash.Strategies`. See [Extensibility](#extensibility) for more information.
+`:strategies` should be a module that implements
+`c:Unleash.Strategies.strategies/0`. See [Extensibility](#extensibility)
+for more information.
 
 ## Extensibility
 

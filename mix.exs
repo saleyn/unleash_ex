@@ -17,8 +17,8 @@ defmodule Unleash.MixProject do
       source_url: @gitlab_url,
       homepage_url: @gitlab_url,
       docs: docs(),
-      files: ~w(mix.exs lib LICENSE README.md CHANGELOG.md),
       package: [
+        files: ~w(mix.exs lib LICENSE README.md CHANGELOG.md),
         maintainers: ["Andrew Fontaine"],
         licenses: ["MIT"],
         links: %{
