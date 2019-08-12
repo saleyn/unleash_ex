@@ -33,11 +33,10 @@ defmodule Unleash.Metrics do
   end
 
   def handle_info(:send_metrics, state) do
-    state =
-      state
-      |> to_bucket()
-      |> log_metrics()
-      |> Client.metrics()
+    state
+    |> to_bucket()
+    |> log_metrics()
+    |> Client.metrics()
 
     schedule_metrics()
 

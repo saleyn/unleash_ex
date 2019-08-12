@@ -23,7 +23,7 @@ build:
     paths:
       - _build/
   script:
-    - mix compile
+    - mix compile --warnings-as-errors
 
 test:
   stage: check
