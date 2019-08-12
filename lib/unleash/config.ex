@@ -11,7 +11,8 @@ defmodule Unleash.Config do
     backup_file: nil,
     custom_http_headers: [],
     disable_client: false,
-    disable_metrics: false
+    disable_metrics: false,
+    retries: -1
   ]
 
   def url do
@@ -79,6 +80,11 @@ defmodule Unleash.Config do
   def disable_metrics do
     application_env()
     |> Keyword.fetch!(:disable_metrics)
+  end
+
+  def retries do
+    application_env()
+    |> Keyword.fetch!(:retries)
   end
 
   defp application_env do
