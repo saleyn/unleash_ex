@@ -33,7 +33,7 @@ by adding `unleash_ex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:unleash_ex, "~> 0.1.0"}
+    {:unleash_ex, "~> 1.0"}
   ]
 end
 ```
