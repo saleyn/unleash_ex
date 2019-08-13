@@ -12,6 +12,8 @@ defmodule Unleash.Strategy.GradualRolloutSessionId do
 
   def enabled?(_params, %{session_id: ""}), do: false
 
+  def enabled?(_params, %{session_id: nil}), do: false
+
   def enabled?(%{"percentage" => percentage, "groupId" => group_id}, %{session_id: session_id})
       when is_binary(group_id) and is_binary(session_id) do
     result =

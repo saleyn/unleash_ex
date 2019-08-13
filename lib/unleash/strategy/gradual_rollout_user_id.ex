@@ -12,6 +12,8 @@ defmodule Unleash.Strategy.GradualRolloutUserId do
 
   def enabled?(_params, %{user_id: ""}), do: false
 
+  def enabled?(_params, %{user_id: nil}), do: false
+
   def enabled?(%{"percentage" => percentage, "groupId" => group_id}, %{user_id: user_id})
       when is_binary(group_id) and is_binary(user_id) do
     result =
