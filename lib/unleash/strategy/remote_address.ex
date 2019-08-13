@@ -11,6 +11,13 @@ defmodule Unleash.Strategy.RemoteAddress do
 
   alias Unleash.Strategy.Utils
 
+  def enabled?(%{"IPs" => list}, context),
+    do: enabled?(%{"ips" => list}, context)
+
+  def enabled?(%{"ips" => _list}, %{remote_address: ""}), do: false
+
+  def enabled?(%{"ips" => _list}, %{remote_address: nil}), do: false
+
   @impl Strategy
   def enabled?(%{"ips" => list}, %{remote_address: address})
       when is_binary(list) and is_binary(address) do

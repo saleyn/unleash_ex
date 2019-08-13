@@ -30,7 +30,7 @@ defmodule Unleash.Strategy do
       @name unquote(name)
 
       @doc false
-      def check_enabled(params, context) do
+      def check_enabled(params \\ %{}, context) do
         params
         |> enabled?(context)
         |> log_result()
@@ -88,12 +88,12 @@ defmodule Unleash.Strategy do
               boolean() | {boolean(), Map.t()}
 
   @doc false
-  def enabled?(%{"name" => name, "parameters" => params}, context) do
+  def enabled?(%{"name" => name} = strategy, context) do
     {_name, module} =
       Config.strategies()
       |> Enum.find(fn {n, _mod} -> n == name end)
 
-    module.check_enabled(params, context)
+    module.check_enabled(strategy["parameters"], context)
   end
 
   def enabled?(_strat, _context), do: false

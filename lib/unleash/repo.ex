@@ -7,6 +7,10 @@ defmodule Unleash.Repo do
   alias Unleash.Config
   alias Unleash.Features
 
+  def init(%Features{} = features) do
+    {:ok, features}
+  end
+
   def init(_) do
     {:ok, %Features{}}
   end
@@ -14,7 +18,9 @@ defmodule Unleash.Repo do
   def start_link(state) do
     {:ok, pid} = GenServer.start_link(__MODULE__, state, name: Unleash.Repo)
 
-    initialize()
+    unless Mix.env() == :test do
+      initialize()
+    end
 
     {:ok, pid}
   end
@@ -45,7 +51,7 @@ defmodule Unleash.Repo do
         end
 
       if features === state do
-        {:noreply, features}
+        {:noreply, state}
       else
         write_state(features)
       end
