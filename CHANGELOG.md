@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.0
+* Implement Client Specification Tests [!4](https://gitlab.com/afontaine/unleash_ex/merge_requests/4)
+
 ## 0.2.0
 
 * Add E-Tag Caching Support [!1](https://gitlab.com/afontaine/unleash_ex/merge_requests/1)
