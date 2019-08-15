@@ -49,10 +49,8 @@ defmodule Unleash.ClientSpecificationTest do
   end)
 
   defp context_from_file(ctx) do
-    %{
-      user_id: ctx["userId"],
-      session_id: ctx["sessionId"],
-      remote_address: ctx["remoteAddress"]
-    }
+    ctx
+    |> Enum.map(fn {k, v} -> {String.to_atom(Recase.to_snake(k)), v} end)
+    |> Enum.into(%{})
   end
 end
