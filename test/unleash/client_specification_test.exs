@@ -7,13 +7,16 @@ defmodule Unleash.ClientSpecificationTest do
   @specs "#{@specification_path}/index.json"
          |> File.read!()
          |> Jason.decode!()
-         |> Enum.filter(fn x -> not String.starts_with?(x, "08") end)
 
   Enum.each(@specs, fn spec ->
-    %{"name" => name, "tests" => tests, "state" => state} =
+    test_spec =
       "#{@specification_path}/#{spec}"
       |> File.read!()
       |> Jason.decode!()
+
+    %{"name" => name, "state" => state} = test_spec
+
+    tests = Enum.concat(Map.get(test_spec, "variantTests", []), Map.get(test_spec, "tests", []))
 
     @state state
 
