@@ -51,12 +51,14 @@ defmodule Unleash.MixProject do
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:eliver, "~> 2.0", only: :dev, runtime: false},
       {:junit_formatter, "~> 3.0", only: :test},
-      {:stream_data, "~> 0.4.3", only: :test},
+      {:stream_data, "~> 0.4.3", only: [:test, :dev]},
       {:excoveralls, "~> 0.8", only: :test},
       {:murmur, "~> 1.0"},
       {:tesla, "~> 1.2"},
       {:hackney, "~> 1.14"},
-      {:jason, "~> 1.1"}
+      {:jason, "~> 1.1"},
+      {:plug, "~> 1.8", optional: true},
+      {:phoenix_gon, "~> 0.4.0", optional: true}
     ]
   end
 
@@ -72,7 +74,9 @@ defmodule Unleash.MixProject do
       extras: ["README.md"],
       deps: [
         tesla: "https://hexdocs.pm/tesla",
-        murmur: "https://hexdocs.pm/murmur/readme.html"
+        murmur: "https://hexdocs.pm/murmur",
+        plug: "https://hexdocs.pm/plug",
+        phoenix_gon: "https://hexdocs.pm/phoenix_gon"
       ],
       groups_for_modules: [
         Strategies: ~r"Strateg(y|ies)\."
