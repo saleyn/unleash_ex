@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.0
+* Add Optional `Plug` Module [!6](https://gitlab.com/afontaine/unleash_ex/merge_requests/6)
+
 ## 1.0.0
 * Implement Client Specification Tests [!4](https://gitlab.com/afontaine/unleash_ex/merge_requests/4)
 
