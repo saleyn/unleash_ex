@@ -1,6 +1,10 @@
 defmodule Unleash.Client do
   @moduledoc false
 
+  @callback features(String.t()) :: Tesla.Env.t()
+  @callback register_client() :: Tesla.Env.t()
+  @callback metrics(map()) :: Tesla.Env.t()
+
   require Logger
 
   alias Unleash.Config

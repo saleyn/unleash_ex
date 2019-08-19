@@ -13,7 +13,6 @@ defmodule Unleash do
   use Application
   require Logger
 
-  alias Unleash.Client
   alias Unleash.Config
   alias Unleash.Feature
   alias Unleash.Metrics
@@ -114,7 +113,7 @@ defmodule Unleash do
       |> Enum.map(fn {module, _e} -> module end)
 
     unless children == [] do
-      Client.register_client()
+      Config.client().register_client()
     end
 
     Supervisor.start_link(children, strategy: :one_for_one)

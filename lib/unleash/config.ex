@@ -12,7 +12,8 @@ defmodule Unleash.Config do
     custom_http_headers: [],
     disable_client: false,
     disable_metrics: false,
-    retries: -1
+    retries: -1,
+    client: Unleash.Client
   ]
 
   def url do
@@ -85,6 +86,11 @@ defmodule Unleash.Config do
   def retries do
     application_env()
     |> Keyword.fetch!(:retries)
+  end
+
+  def client do
+    application_env()
+    |> Keyword.fetch!(:client)
   end
 
   defp application_env do

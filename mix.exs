@@ -9,6 +9,7 @@ defmodule Unleash.MixProject do
       app: :unleash,
       version: "VERSION" |> File.read!() |> String.trim(),
       elixir: "~> 1.8",
+      elixirc_paths: elixirc_paths(Mix.env),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
@@ -47,12 +48,14 @@ defmodule Unleash.MixProject do
   defp deps do
     [
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:inch_ex, "~> 2.0", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 0.5", only: :dev, runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:eliver, "~> 2.0", only: :dev, runtime: false},
       {:junit_formatter, "~> 3.0", only: :test},
       {:stream_data, "~> 0.4.3", only: [:test, :dev]},
       {:excoveralls, "~> 0.8", only: :test},
+      {:mox, "~> 0.5.1", only: :test},
       {:murmur, "~> 1.0"},
       {:tesla, "~> 1.2"},
       {:hackney, "~> 1.14"},
@@ -83,4 +86,8 @@ defmodule Unleash.MixProject do
       ]
     ]
   end
+
+  defp elixirc_paths(:test), do: ["test/support", "lib"]
+
+  defp elixirc_paths(_), do: ["lib"]
 end
