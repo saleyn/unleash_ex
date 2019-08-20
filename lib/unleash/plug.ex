@@ -71,11 +71,11 @@ if Code.ensure_loaded?(Plug) do
 
       ## Examples
 
-        iex> Unleash.Plug.put_feature(conn, :test)
-        %Plug.Conn{}
+          iex> Unleash.Plug.put_feature(conn, :test)
+          %Plug.Conn{}
 
-        iex> Unleash.Plug.enabled?(conn, :test, true)
-        %Plug.Conn{}
+          iex> Unleash.Plug.enabled?(conn, :test, true)
+          %Plug.Conn{}
       """
       @spec put_feature(Plug.Conn.t(), String.t() | atom(), boolean()) :: Plug.Conn.t()
       def put_feature(conn, feature, default \\ false) do

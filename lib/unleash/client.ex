@@ -18,7 +18,7 @@ defmodule Unleash.Client do
     response =
       etag
       |> client()
-      |> Tesla.get("/api/client/features")
+      |> Tesla.get("/client/features")
       |> case do
         {:ok, tesla} -> tesla
         error -> error
@@ -41,9 +41,9 @@ defmodule Unleash.Client do
         interval: Config.metrics_period()
       })
 
-  def register(client), do: send_data("/api/client/register", client)
+  def register(client), do: send_data("/client/register", client)
 
-  def metrics(met), do: send_data("/api/client/metrics", met)
+  def metrics(met), do: send_data("/client/metrics", met)
 
   defp handle_feature_response(tesla) do
     features =

@@ -45,7 +45,7 @@ their defaults. These go into the relevant `config/*.exs` file.
 
 ```elixir
 config :unleash, Unleash,
-  url: "", # The URL of the Unleash server to connect to
+  url: "", # The URL of the Unleash server to connect to, should include up to http://base.url/api
   appname: "", # The app name, used for registration
   instance_id: "", # The instance ID, used for metrics tracking
   metrics_period: 10 * 60 * 1000, # Send metrics every 10 minutes, in milliseconds
