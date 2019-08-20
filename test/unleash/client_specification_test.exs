@@ -7,13 +7,18 @@ defmodule Unleash.ClientSpecificationTest do
   @specs "#{@specification_path}/index.json"
          |> File.read!()
          |> Jason.decode!()
-         |> Enum.filter(fn x -> not String.starts_with?(x, "08") end)
 
   Enum.each(@specs, fn spec ->
-    %{"name" => name, "tests" => tests, "state" => state} =
+    test_spec =
       "#{@specification_path}/#{spec}"
       |> File.read!()
       |> Jason.decode!()
+
+    %{"name" => name, "state" => state} = test_spec
+
+    tests = Map.get(test_spec, "tests", [])
+
+    variant_tests = Map.get(test_spec, "variantTests", [])
 
     @state state
 
@@ -37,19 +42,34 @@ defmodule Unleash.ClientSpecificationTest do
         @expected expected
 
         test t do
-          context = context_from_file(@context)
+          context = entity_from_file(@context)
 
           assert @expected == Unleash.enabled?(@feature, context)
+        end
+      end)
+
+      Enum.each(variant_tests, fn %{
+                                    "context" => ctx,
+                                    "description" => t,
+                                    "expectedResult" => expected,
+                                    "toggleName" => feature
+                                  } ->
+        @context ctx
+        @feature feature
+        @expected expected
+
+        test t do
+          context = entity_from_file(@context)
+
+          assert entity_from_file(@expected) == Unleash.get_variant(@feature, context)
         end
       end)
     end
   end)
 
-  defp context_from_file(ctx) do
-    %{
-      user_id: ctx["userId"],
-      session_id: ctx["sessionId"],
-      remote_address: ctx["remoteAddress"]
-    }
+  defp entity_from_file(e) do
+    e
+    |> Enum.map(fn {k, v} -> {String.to_atom(Recase.to_snake(k)), v} end)
+    |> Enum.into(%{})
   end
 end

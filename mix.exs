@@ -56,6 +56,7 @@ defmodule Unleash.MixProject do
       {:stream_data, "~> 0.4.3", only: [:test, :dev]},
       {:excoveralls, "~> 0.8", only: :test},
       {:mox, "~> 0.5.1", only: :test},
+      {:recase, "~> 0.6.0", only: :test},
       {:murmur, "~> 1.0"},
       {:tesla, "~> 1.2"},
       {:hackney, "~> 1.14"},

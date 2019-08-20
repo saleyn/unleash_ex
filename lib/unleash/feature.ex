@@ -2,20 +2,23 @@ defmodule Unleash.Feature do
   @moduledoc false
 
   alias Unleash.Strategy
+  alias Unleash.Variant
   require Logger
 
   @derive Jason.Encoder
   defstruct name: "",
             description: "",
             enabled: false,
-            strategies: []
+            strategies: [],
+            variants: %{}
 
   def from_map(map) when is_map(map) do
     %__MODULE__{
       name: map["name"],
       description: map["description"],
       enabled: map["enabled"],
-      strategies: map["strategies"]
+      strategies: map["strategies"],
+      variants: map |> Map.get("variants", []) |> Enum.map(&Variant.from_map/1)
     }
   end
 
