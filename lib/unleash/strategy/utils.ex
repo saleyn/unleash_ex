@@ -40,10 +40,10 @@ defmodule Unleash.Strategy.Utils do
   [`gradualRolloutUserId`](https://unleash.github.io/docs/activation_strategy#gradualrolloutuserid)
   strategy.
   """
-  def normalize(id, group_id) do
+  def normalize(id, group_id, normalizer \\ @normalizer) do
     "#{group_id}:#{id}"
     |> Murmur.hash_x86_32()
-    |> Integer.mod(@normalizer)
+    |> Integer.mod(normalizer)
     |> Kernel.+(1)
   end
 

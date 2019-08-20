@@ -17,6 +17,7 @@ defmodule Unleash do
   alias Unleash.Feature
   alias Unleash.Metrics
   alias Unleash.Repo
+  alias Unleash.Variant
 
   @typedoc """
   The context needed for a few activation strategies. Check their documentation
@@ -95,10 +96,19 @@ defmodule Unleash do
       feature
       |> Repo.get_feature()
       |> case do
-        %Feature{name: nil} -> {feature, default}
+        nil -> {feature, default}
         feature -> {feature, Feature.enabled?(feature, context)}
       end
       |> Metrics.add_metric()
+    end
+  end
+
+  def get_variant(name, context \\ %{}, fallback \\ %{name: "disabled", enabled: false}) do
+    name
+    |> Repo.get_feature()
+    |> case do
+      nil -> fallback
+      feature -> Variant.select_variant(feature, context)
     end
   end
 
