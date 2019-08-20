@@ -10,6 +10,8 @@ defmodule Unleash.Variant do
             payload: %{},
             overrides: []
 
+  @type t :: %{enabled: boolean(), name: String.t(), payload: map()}
+
   def select_variant(%Feature{variants: variants, name: name}, context)
       when is_list(variants) and length(variants) > 0 do
     total_weight =

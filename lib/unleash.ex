@@ -103,12 +103,40 @@ defmodule Unleash do
     end
   end
 
+  @doc """
+  Returns a variant for the given name.
+
+  If `:disable_client` is `true`, returns the fallback.
+
+  A [variant](https://unleash.github.io/docs/beta_features#feature-toggle-variants)
+  allows for more complicated toggling than a simple `true`/`false`, instead
+  returning one of the configured variants depending on whether or not there
+  are any overrides for a given context value as well as factoring in the
+  weights for the various weight options.
+
+  ## Examples
+
+      iex> Unleash.get_variant(:test)
+      %{enabled: true, name: "test", payload: %{...}}
+
+      iex> Unleash.get_variant(:test)
+      %{enabled: false, name: "disabled"}
+  """
+  @spec get_variant(atom() | String.t(), Map.t(), Variant.t()) :: Variant.t()
   def get_variant(name, context \\ %{}, fallback \\ %{name: "disabled", enabled: false}) do
-    name
-    |> Repo.get_feature()
-    |> case do
-      nil -> fallback
-      feature -> Variant.select_variant(feature, context)
+    if Config.disable_client() do
+      Logger.warn(fn ->
+        "Client is disabled, it will only return the fallback: #{fallback}"
+      end)
+
+      fallback
+    else
+      name
+      |> Repo.get_feature()
+      |> case do
+        nil -> fallback
+        feature -> Variant.select_variant(feature, context)
+      end
     end
   end
 
