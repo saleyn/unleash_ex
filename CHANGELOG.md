@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+* Add Variant Support [!5](https://gitlab.com/afontaine/unleash_ex/merge_requests/5)
+* Fix ETag Usage [f30b80bf](https://gitlab.com/afontaine/unleash_ex/commit/f30b80bf931f56f5de908ca738977c2e540155e4)
+
 ## 1.1.0
 * Add Optional `Plug` Module [!6](https://gitlab.com/afontaine/unleash_ex/merge_requests/6)
 
