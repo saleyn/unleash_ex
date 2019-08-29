@@ -15,11 +15,22 @@ defmodule Unleash.Client do
   @sdk_version "unleash_ex:#{Mix.Project.config()[:version]}"
 
   def features(etag \\ nil) do
-    response =
+    request =
       etag
       |> client()
-      |> Tesla.get("/client/features")
-      |> case do
+
+    Logger.debug(fn ->
+      "Request sent to features with #{inspect(request, pretty: true)}"
+    end)
+
+    response = Tesla.get(request, "/client/features")
+
+    Logger.debug(fn ->
+      "Result from features was #{inspect(response, pretty: true)}"
+    end)
+
+    response =
+      case response do
         {:ok, tesla} -> tesla
         error -> error
       end
@@ -46,6 +57,13 @@ defmodule Unleash.Client do
   def metrics(met), do: send_data("/client/metrics", met)
 
   defp handle_feature_response(tesla) do
+    case tesla do
+      %Tesla.Env{status: 304} -> :cached
+      %Tesla.Env{status: 200} -> pull_out_data(tesla)
+    end
+  end
+
+  defp pull_out_data(tesla) do
     features =
       tesla
       |> Map.from_struct()
@@ -95,9 +113,12 @@ defmodule Unleash.Client do
         {@instance_id, Config.instance_id()}
       ])
 
-    if etag do
-      [{@if_none_match, etag} | headers]
-    end
+    headers =
+      if etag do
+        [{@if_none_match, etag} | headers]
+      else
+        headers
+      end
 
     [
       {Tesla.Middleware.BaseUrl, Config.url()},

@@ -37,7 +37,11 @@ defmodule Unleash.Repo do
 
   def handle_info({:initialize, etag, retries}, state) do
     if retries > 0 or retries <= -1 do
-      {etag, response} = Client.features(etag)
+      {etag, response} =
+        case Client.features(etag) do
+          :cached -> {etag, state}
+          x -> x
+        end
 
       features =
         case response do
