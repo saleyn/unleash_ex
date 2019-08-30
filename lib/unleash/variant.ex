@@ -5,6 +5,7 @@ defmodule Unleash.Variant do
 
   @sticky_props [:user_id, :session_id, :remote_address]
 
+  @derive Jason.Encoder
   defstruct name: "",
             weight: 0,
             payload: %{},

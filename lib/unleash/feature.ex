@@ -18,7 +18,7 @@ defmodule Unleash.Feature do
       description: map["description"],
       enabled: map["enabled"],
       strategies: map["strategies"],
-      variants: map |> Map.get("variants", []) |> Enum.map(&Variant.from_map/1)
+      variants: Enum.map(map["variants"] || [], &Variant.from_map/1)
     }
   end
 

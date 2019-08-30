@@ -9,7 +9,7 @@ defmodule Unleash.MixProject do
       app: :unleash,
       version: "VERSION" |> File.read!() |> String.trim(),
       elixir: "~> 1.8",
-      elixirc_paths: elixirc_paths(Mix.env),
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       aliases: aliases(),
@@ -58,8 +58,7 @@ defmodule Unleash.MixProject do
       {:mox, "~> 0.5.1", only: :test},
       {:recase, "~> 0.6.0", only: :test},
       {:murmur, "~> 1.0"},
-      {:tesla, "~> 1.2"},
-      {:hackney, "~> 1.14"},
+      {:mojito, "~> 0.5.0"},
       {:jason, "~> 1.1"},
       {:plug, "~> 1.8", optional: true},
       {:phoenix_gon, "~> 0.4.0", optional: true}

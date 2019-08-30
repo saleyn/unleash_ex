@@ -54,9 +54,9 @@ defmodule UnleashTest do
   describe "start/1" do
     test "it should listen to configuration when starting the supervisor tree" do
       Unleash.ClientMock
-      |> expect(:register_client, fn -> %Tesla.Env{} end)
-      |> expect(:features, fn _ -> %Tesla.Env{} end)
-      |> expect(:metrics, fn _ -> %Tesla.Env{} end)
+      |> expect(:register_client, fn -> %Mojito.Response{} end)
+      |> expect(:features, fn _ -> %Mojito.Response{} end)
+      |> expect(:metrics, fn _ -> %Mojito.Response{} end)
 
       Application.put_env(:unleash, Unleash, client: Unleash.ClientMock)
       {:ok, pid} = Unleash.start(:normal, [])
@@ -69,8 +69,8 @@ defmodule UnleashTest do
 
     test "it shouldn't start the metrics server if disabled" do
       Unleash.ClientMock
-      |> expect(:register_client, fn -> %Tesla.Env{} end)
-      |> expect(:features, fn _ -> %Tesla.Env{} end)
+      |> expect(:register_client, fn -> %Mojito.Response{} end)
+      |> expect(:features, fn _ -> %Mojito.Response{} end)
 
       Application.put_env(:unleash, Unleash, disable_metrics: true, client: Unleash.ClientMock)
       {:ok, pid} = Unleash.start(:normal, [])

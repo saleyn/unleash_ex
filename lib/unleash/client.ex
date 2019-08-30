@@ -12,18 +12,17 @@ defmodule Unleash.Client do
   @appname "UNLEASH-APPNAME"
   @instance_id "UNLEASH-INSTANCEID"
   @if_none_match "If-None-Match"
+  @accept "Accept"
   @sdk_version "unleash_ex:#{Mix.Project.config()[:version]}"
 
   def features(etag \\ nil) do
-    request =
-      etag
-      |> client()
+    headers = headers(etag)
 
     Logger.debug(fn ->
-      "Request sent to features with #{inspect(request, pretty: true)}"
+      "Request sent to features with #{inspect(headers, pretty: true)}"
     end)
 
-    response = Tesla.get(request, "/client/features")
+    response = Mojito.get("#{Config.url()}/client/features", headers)
 
     Logger.debug(fn ->
       "Result from features was #{inspect(response, pretty: true)}"
@@ -31,13 +30,13 @@ defmodule Unleash.Client do
 
     response =
       case response do
-        {:ok, tesla} -> tesla
+        {:ok, mojito} -> mojito
         error -> error
       end
 
     case response do
       {:error, _} = error -> {nil, error}
-      tesla -> handle_feature_response(tesla)
+      mojito -> handle_feature_response(mojito)
     end
   end
 
@@ -52,26 +51,27 @@ defmodule Unleash.Client do
         interval: Config.metrics_period()
       })
 
-  def register(client), do: send_data("/client/register", client)
+  def register(client), do: send_data("#{Config.url()}/client/register", client)
 
-  def metrics(met), do: send_data("/client/metrics", met)
+  def metrics(met), do: send_data("#{Config.url()}/client/metrics", met)
 
-  defp handle_feature_response(tesla) do
-    case tesla do
-      %Tesla.Env{status: 304} -> :cached
-      %Tesla.Env{status: 200} -> pull_out_data(tesla)
+  defp handle_feature_response(mojito) do
+    case mojito do
+      %Mojito.Response{status_code: 304} -> :cached
+      %Mojito.Response{status_code: 200} -> pull_out_data(mojito)
     end
   end
 
-  defp pull_out_data(tesla) do
+  defp pull_out_data(mojito) do
     features =
-      tesla
+      mojito
       |> Map.from_struct()
-      |> Map.get(:body, %{})
+      |> Map.get(:body, "")
+      |> Jason.decode!()
       |> Features.from_map!()
 
     etag =
-      tesla
+      mojito
       |> Map.from_struct()
       |> Map.get(:headers, [])
       |> Enum.into(%{})
@@ -84,7 +84,8 @@ defmodule Unleash.Client do
     result =
       data
       |> tag_data()
-      |> (&Tesla.post(client(), url, &1)).()
+      |> Jason.encode!()
+      |> (&Mojito.post(url, headers(), &1)).()
 
     Logger.debug(fn ->
       "Request sent to #{url} with #{inspect(data, pretty: true)}"
@@ -105,28 +106,19 @@ defmodule Unleash.Client do
     result
   end
 
-  defp client(etag \\ nil) do
-    headers =
-      Config.custom_headers()
-      |> Keyword.merge([
-        {@appname, Config.appname()},
-        {@instance_id, Config.instance_id()}
-      ])
+  defp headers(nil), do: headers()
 
-    headers =
-      if etag do
-        [{@if_none_match, etag} | headers]
-      else
-        headers
-      end
+  defp headers(etag),
+    do: headers() ++ [{@if_none_match, etag}]
 
-    [
-      {Tesla.Middleware.BaseUrl, Config.url()},
-      Tesla.Middleware.JSON,
-      {Tesla.Middleware.Headers, headers}
-    ]
-    |> Tesla.client()
-  end
+  defp headers,
+    do:
+      Config.custom_headers() ++
+        [
+          {@appname, Config.appname()},
+          {@instance_id, Config.instance_id()},
+          {@accept, "application/json"}
+        ]
 
   defp tag_data(data) do
     data
