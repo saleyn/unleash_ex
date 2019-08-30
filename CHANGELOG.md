@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0
+* Fix Variant Serialization to JSON [e5f4fd3c](https://gitlab.com/afontaine/unleash_ex/commit/e5f4fd3cece12810afbe789c122404e9169bd1ef)
+* Use Mojito to Pool HTTP Connections [e5f4fd3c](https://gitlab.com/afontaine/unleash_ex/commit/e5f4fd3cece12810afbe789c122404e9169bd1ef)
+
 ## 1.2.0
 * Add Variant Support [!5](https://gitlab.com/afontaine/unleash_ex/merge_requests/5)
 * Fix ETag Usage [f30b80bf](https://gitlab.com/afontaine/unleash_ex/commit/f30b80bf931f56f5de908ca738977c2e540155e4)
