@@ -76,10 +76,10 @@ defmodule Unleash.MixProject do
       main: "readme",
       extras: ["README.md"],
       deps: [
-        tesla: "https://hexdocs.pm/tesla",
-        murmur: "https://hexdocs.pm/murmur",
-        plug: "https://hexdocs.pm/plug",
-        phoenix_gon: "https://hexdocs.pm/phoenix_gon"
+        mojito: "https://hexdocs.pm/mojito/",
+        murmur: "https://hexdocs.pm/murmur/",
+        plug: "https://hexdocs.pm/plug/",
+        phoenix_gon: "https://hexdocs.pm/phoenix_gon/"
       ],
       groups_for_modules: [
         Strategies: ~r"Strateg(y|ies)\."

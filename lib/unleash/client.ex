@@ -1,9 +1,9 @@
 defmodule Unleash.Client do
   @moduledoc false
 
-  @callback features(String.t()) :: Tesla.Env.t()
-  @callback register_client() :: Tesla.Env.t()
-  @callback metrics(map()) :: Tesla.Env.t()
+  @callback features(String.t()) :: Mojito.response()
+  @callback register_client() :: Mojito.response()
+  @callback metrics(map()) :: Mojito.response()
 
   require Logger
 
