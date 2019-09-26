@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.1
+* Fix Missing Content-Type for Posting Metrics [89d073cf](https://gitlab.com/afontaine/unleash_ex/commit/89d073cf6e507816259c8481b9510c56db672deb)
+
 ## 1.3.0
 * Fix Variant Serialization to JSON [e5f4fd3c](https://gitlab.com/afontaine/unleash_ex/commit/e5f4fd3cece12810afbe789c122404e9169bd1ef)
 * Use Mojito to Pool HTTP Connections [e5f4fd3c](https://gitlab.com/afontaine/unleash_ex/commit/e5f4fd3cece12810afbe789c122404e9169bd1ef)
