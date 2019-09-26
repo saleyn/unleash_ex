@@ -12,8 +12,9 @@ defmodule Unleash.Client do
   @appname "UNLEASH-APPNAME"
   @instance_id "UNLEASH-INSTANCEID"
   @if_none_match "If-None-Match"
-  @accept "Accept"
   @sdk_version "unleash_ex:#{Mix.Project.config()[:version]}"
+  @accept {"Accept", "application/json"}
+  @content_type {"Content-Type", "application/json"}
 
   def features(etag \\ nil) do
     headers = headers(etag)
@@ -117,7 +118,8 @@ defmodule Unleash.Client do
         [
           {@appname, Config.appname()},
           {@instance_id, Config.instance_id()},
-          {@accept, "application/json"}
+          @accept,
+          @content_type
         ]
 
   defp tag_data(data) do
