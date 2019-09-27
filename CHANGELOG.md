@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.4.0
+* Add Support for Capturing Metrics on Variants [!7](https://gitlab.com/afontaine/unleash_ex/merge_requests/7)
+
 ## 1.3.1
 * Fix Missing Content-Type for Posting Metrics [89d073cf](https://gitlab.com/afontaine/unleash_ex/commit/89d073cf6e507816259c8481b9510c56db672deb)
 
