@@ -33,37 +33,16 @@ defmodule Unleash.Strategy do
       def check_enabled(params \\ %{}, context) do
         params
         |> enabled?(context)
-        |> log_result()
+        |> Strategy.log_result(@name)
       end
-
-      defp log_result(result) when is_boolean(result) do
-        Logger.debug(fn ->
-          "#{@name} computed #{result}"
-        end)
-
-        result
-      end
-
-      defp log_result({result, opts}) when is_map(opts) do
-        Logger.debug(fn ->
-          opts
-          |> Stream.map(fn {k, v} -> "#{k}: #{v}" end)
-          |> Enum.join(", ")
-          |> (&"#{@name} computed #{result} from #{&1}").()
-        end)
-
-        result
-      end
-
-      defp log_result({result, _opts}), do: result
     end
   end
 
   @doc """
   You can implmenet this callback a couple of ways, returning a bare `boolean()`
-  or a `{boolean, Map.t()}`. The latter is preferred, as it generates a
+  or a `{boolean, map()}`. The latter is preferred, as it generates a
   `:debug` level log entry detailing the name of the strategy, the result, and
-  the contents of `Map.t()`, in an effort to help understand why the result was
+  the contents of `map()`, in an effort to help understand why the result was
   what it was.
 
   ## Arguments
@@ -84,8 +63,8 @@ defmodule Unleash.Strategy do
   ```
 
   """
-  @callback enabled?(parameters :: Map.t(), context :: Unleash.context()) ::
-              boolean() | {boolean(), Map.t()}
+  @callback enabled?(parameters :: map(), context :: Unleash.context()) ::
+              boolean() | {boolean(), map()}
 
   @doc false
   def enabled?(%{"name" => name} = strategy, context) do
@@ -97,4 +76,25 @@ defmodule Unleash.Strategy do
   end
 
   def enabled?(_strat, _context), do: false
+
+  @spec log_result({boolean(), map()}, String.t()) :: boolean()
+  def log_result({result, opts}, name) when is_map(opts) do
+    Logger.debug(fn ->
+      opts
+      |> Stream.map(fn {k, v} -> "#{k}: #{v}" end)
+      |> Enum.join(", ")
+      |> (&"#{name} computed #{result} from #{&1}").()
+    end)
+
+    result
+  end
+
+  @spec log_result(boolean(), String.t()) :: boolean()
+  def log_result(result, name) when is_boolean(result) do
+    Logger.debug(fn ->
+      "#{name} computed #{result}"
+    end)
+
+    result
+  end
 end

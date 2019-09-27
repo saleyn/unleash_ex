@@ -46,7 +46,7 @@ defmodule Unleash do
   @doc """
   Aliased to `enabled?/3`
   """
-  @spec is_enabled?(atom() | String.t(), Map.t(), boolean) :: boolean
+  @spec is_enabled?(atom() | String.t(), map(), boolean) :: boolean
   def is_enabled?(feature, context \\ %{}, default \\ false),
     do: enabled?(feature, context, default)
 
@@ -84,7 +84,7 @@ defmodule Unleash do
       iex> Unleash.enabled?(:my_feature, context, true)
       false
   """
-  @spec enabled?(atom() | String.t(), Map.t(), boolean) :: boolean
+  @spec enabled?(atom() | String.t(), map(), boolean) :: boolean
   def enabled?(feature, context \\ %{}, default \\ false) do
     if Config.disable_client() do
       Logger.warn(fn ->

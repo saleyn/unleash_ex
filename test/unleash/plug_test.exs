@@ -64,6 +64,7 @@ defmodule Unleash.PlugTest do
     :ok
   end
 
+  @tag capture_log: true
   describe "call/2" do
     property "puts an unleash context in assigns" do
       check all session_id <- binary(),
@@ -105,6 +106,7 @@ defmodule Unleash.PlugTest do
     end
   end
 
+  @tag capture_log: true
   describe "enabled?/3" do
     test "it should pass a constructed context through to `Unleash.enabled?/3`" do
       conn = conn(:get, "/")
@@ -121,6 +123,7 @@ defmodule Unleash.PlugTest do
   end
 
   describe "put_feature/3" do
+    @tag capture_log: true
     test "it should put a feature in the Gon object" do
       conn = conn(:get, "/")
 
@@ -134,6 +137,7 @@ defmodule Unleash.PlugTest do
       assert %{test1: true} = Controller.get_gon(conn, :features)
     end
 
+    @tag capture_log: true
     test "it should append a feature in the Gon object" do
       conn = conn(:get, "/")
 
