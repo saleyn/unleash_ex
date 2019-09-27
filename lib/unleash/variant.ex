@@ -12,6 +12,11 @@ defmodule Unleash.Variant do
             overrides: []
 
   @type t :: %{enabled: boolean(), name: String.t(), payload: map()}
+  @type result :: %{
+          required(:enabled) => boolean(),
+          required(:name) => String.t(),
+          optional(:payload) => map()
+        }
 
   def select_variant(%Feature{variants: variants, name: name}, context)
       when is_list(variants) and length(variants) > 0 do

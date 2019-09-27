@@ -2,11 +2,11 @@ defmodule UnleashTest do
   use ExUnit.Case
   import ExUnit.CaptureLog
   import Mox
-  require Logger
 
   describe "enabled?/2" do
     setup :start_repo
 
+    @tag capture_log: true
     test "should send an empty context" do
       Application.put_env(:unleash, Unleash, [])
       refute Unleash.enabled?(:test1, true)
@@ -16,6 +16,7 @@ defmodule UnleashTest do
   describe "is_enabled?" do
     setup :start_repo
 
+    @tag capture_log: true
     test "should call enabled" do
       assert Unleash.is_enabled?(:test1, true) == Unleash.enabled?(:test1, true)
 
@@ -39,6 +40,7 @@ defmodule UnleashTest do
       :ok
     end
 
+    @tag capture_log: true
     test "should return the default if the client is disabled" do
       assert true == Unleash.enabled?(:test, %{}, true)
       assert false == Unleash.enabled?(:test, %{}, false)
@@ -51,12 +53,37 @@ defmodule UnleashTest do
     end
   end
 
+  describe "get_variant/3" do
+    setup do
+      stop_supervised(Unleash.Repo)
+      Application.put_env(:unleash, Unleash, disable_client: true)
+
+      on_exit(fn ->
+        Application.put_env(:unleash, Unleash, disable_client: false)
+      end)
+
+      :ok
+    end
+
+    @tag capture_log: true
+    test "should return the default if the client is disabled" do
+      assert true == Unleash.get_variant(:variant, %{}, true)
+      assert false == Unleash.get_variant(:variant, %{}, false)
+    end
+
+    test "should log if the client is disabled" do
+      assert capture_log(fn ->
+               Unleash.get_variant(:variant)
+             end) =~ "Client is disabled, it will only return the fallback:"
+    end
+  end
+
   describe "start/1" do
     test "it should listen to configuration when starting the supervisor tree" do
       Unleash.ClientMock
       |> expect(:register_client, fn -> %Mojito.Response{} end)
-      |> expect(:features, fn _ -> %Mojito.Response{} end)
-      |> expect(:metrics, fn _ -> %Mojito.Response{} end)
+      |> stub(:features, fn _ -> %Mojito.Response{} end)
+      |> stub(:metrics, fn _ -> %Mojito.Response{} end)
 
       Application.put_env(:unleash, Unleash, client: Unleash.ClientMock)
       {:ok, pid} = Unleash.start(:normal, [])
@@ -70,7 +97,7 @@ defmodule UnleashTest do
     test "it shouldn't start the metrics server if disabled" do
       Unleash.ClientMock
       |> expect(:register_client, fn -> %Mojito.Response{} end)
-      |> expect(:features, fn _ -> %Mojito.Response{} end)
+      |> stub(:features, fn _ -> %Mojito.Response{} end)
 
       Application.put_env(:unleash, Unleash, disable_metrics: true, client: Unleash.ClientMock)
       {:ok, pid} = Unleash.start(:normal, [])
@@ -142,6 +169,24 @@ defmodule UnleashTest do
               "parameters" => %{
                 "IPs" => "127.0.0.1"
               }
+            }
+          ]
+        },
+        %{
+          "name" => "variant",
+          "description" => "variant",
+          "enabled" => true,
+          "startegies" => [
+            %{
+              "name" => "default",
+              "parameters" => %{}
+            }
+          ],
+          "variants" => [
+            %{
+              "name" => "variant1",
+              "weight" => 100,
+              "payload" => %{"type" => "string", "value" => "val1"}
             }
           ]
         }
