@@ -3,28 +3,39 @@ defmodule Unleash.Metrics do
   use GenServer
   require Logger
 
-  alias Unleash.Client
   alias Unleash.Config
   alias Unleash.Feature
 
-  @type t :: %{stop: String.t(), start: String.t(), toggles: Map.t()}
+  @type t :: %{stop: String.t(), start: String.t(), toggles: map()}
+
+  def add_metric({feature, enabled?}, pid \\ Unleash.Metrics) do
+    unless Config.disable_metrics() do
+      GenServer.cast(pid, {:add_metric, feature, enabled?})
+    end
+
+    enabled?
+  end
+
+  def add_variant_metric({name, variant}, pid \\ Unleash.Metrics) do
+    unless Config.disable_metrics() do
+      GenServer.cast(pid, {:add_variant_metric, name, variant})
+    end
+
+    variant
+  end
 
   def init(_) do
     {:ok, init_state()}
   end
 
-  def start_link(state) do
-    {:ok, pid} = GenServer.start_link(__MODULE__, state, name: Unleash.Metrics)
-    initialize()
-    {:ok, pid}
-  end
+  def start_link(state, opts \\ []) do
+    {:ok, pid} = GenServer.start_link(__MODULE__, state, opts)
 
-  def add_metric({feature, enabled?}) do
-    unless Config.disable_metrics() do
-      GenServer.cast(Unleash.Metrics, {:add_metric, feature, enabled?})
+    unless Mix.env() == :test do
+      initialize(pid)
     end
 
-    enabled?
+    {:ok, pid}
   end
 
   def handle_cast({:add_metric, feature, enabled?}, state) do
@@ -32,15 +43,31 @@ defmodule Unleash.Metrics do
     {:noreply, state}
   end
 
+  def handle_cast({:add_variant_metric, variant, name}, state) do
+    state = handle_variant_metric(state, variant, name)
+
+    {:noreply, state}
+  end
+
   def handle_info(:send_metrics, state) do
+    {:noreply, send_metrics(state)}
+  end
+
+  if Mix.env() == :test do
+    def handle_call(:send_metrics, _from, state) do
+      {:reply, :ok, send_metrics(state)}
+    end
+  end
+
+  defp send_metrics(state) do
     state
     |> to_bucket()
     |> log_metrics()
-    |> Client.metrics()
+    |> Config.client().metrics()
 
     schedule_metrics()
 
-    {:noreply, init_state()}
+    init_state()
   end
 
   defp log_metrics(state) do
@@ -67,6 +94,12 @@ defmodule Unleash.Metrics do
     |> Map.update(feature, %{yes: 0, no: 1}, &Map.update!(&1, :no, fn x -> x + 1 end))
   end
 
+  defp handle_variant_metric(%{toggles: features} = state, variant, %{name: name}) do
+    features
+    |> Map.update(variant, Map.new([{name, 1}]), &Map.update(&1, name, 1, fn x -> x + 1 end))
+    |> (&Map.put(state, :toggles, &1)).()
+  end
+
   defp to_bucket(state), do: %{bucket: Map.put(state, :stop, current_date())}
 
   defp current_date do
@@ -78,8 +111,8 @@ defmodule Unleash.Metrics do
     %{start: current_date(), toggles: %{}}
   end
 
-  defp initialize do
-    Process.send(Unleash.Metrics, :send_metrics, [])
+  defp initialize(pid) do
+    Process.send(pid, :send_metrics, [])
   end
 
   defp schedule_metrics do

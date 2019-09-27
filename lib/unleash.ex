@@ -122,11 +122,11 @@ defmodule Unleash do
       iex> Unleash.get_variant(:test)
       %{enabled: false, name: "disabled"}
   """
-  @spec get_variant(atom() | String.t(), Map.t(), Variant.t()) :: Variant.t()
+  @spec get_variant(atom() | String.t(), map(), Variant.result()) :: Variant.result()
   def get_variant(name, context \\ %{}, fallback \\ %{name: "disabled", enabled: false}) do
     if Config.disable_client() do
       Logger.warn(fn ->
-        "Client is disabled, it will only return the fallback: #{fallback}"
+        "Client is disabled, it will only return the fallback: #{Jason.encode!(fallback)}"
       end)
 
       fallback
@@ -145,7 +145,7 @@ defmodule Unleash do
     children =
       [
         {Repo, Config.disable_client()},
-        {Metrics, Config.disable_client() or Config.disable_metrics()}
+        {{Metrics, name: Metrics}, Config.disable_client() or Config.disable_metrics()}
       ]
       |> Enum.filter(fn {_m, not_enabled} -> not not_enabled end)
       |> Enum.map(fn {module, _e} -> module end)
