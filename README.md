@@ -1,10 +1,5 @@
 # Unleash
 
-[![pipeline status](https://gitlab.com/afontaine/unleash_ex/badges/master/pipeline.svg)](https://gitlab.com/afontaine/unleash_ex/commits/master)
-[![coverage report](https://gitlab.com/afontaine/unleash_ex/badges/master/coverage.svg)](https://gitlab.com/afontaine/unleash_ex/commits/master)
-[![Hex version badge](https://img.shields.io/hexpm/v/unleash.svg)](https://hex.pm/packages/unleash)
-[![License badge](https://img.shields.io/hexpm/l/unleash.svg)](https://gitlab.com/afontaine/unleash_ex/blob/master/LICENSE)
-
 `Unleash` is a client for the
 [Unleash Toggle Service](https://unleash.github.io/).
 
