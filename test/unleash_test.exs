@@ -3,6 +3,23 @@ defmodule UnleashTest do
   import ExUnit.CaptureLog
   import Mox
 
+  describe "features/0" do
+    @tag :capture_log
+    test "should warn if unexpected status code returned" do
+      MojitoMock
+      |> stub(:post, fn _, _, _ -> {:ok, %Mojito.Response{}} end)
+      |> expect(:get, fn _url, _headers ->
+        %Mojito.Response{status_code: 502}
+      end)
+
+      Application.put_env(:unleash, Unleash, http_client: MojitoMock)
+
+      assert capture_log(fn ->
+        Unleash.Client.features()
+      end) =~ ~r/Unexpected response.+Using cached features/
+    end
+  end
+
   describe "enabled?/2" do
     setup :start_repo
 

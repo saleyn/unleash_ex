@@ -13,7 +13,8 @@ defmodule Unleash.Config do
     disable_client: false,
     disable_metrics: false,
     retries: -1,
-    client: Unleash.Client
+    client: Unleash.Client,
+    http_client: Mojito
   ]
 
   def url do
@@ -91,6 +92,11 @@ defmodule Unleash.Config do
   def client do
     application_env()
     |> Keyword.fetch!(:client)
+  end
+
+  def http_client do
+    application_env()
+    |> Keyword.fetch!(:http_client)
   end
 
   defp application_env do

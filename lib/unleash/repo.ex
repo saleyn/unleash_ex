@@ -3,7 +3,6 @@ defmodule Unleash.Repo do
   use GenServer
   require Logger
 
-  alias Unleash.Client
   alias Unleash.Config
   alias Unleash.Features
 
@@ -38,7 +37,7 @@ defmodule Unleash.Repo do
   def handle_info({:initialize, etag, retries}, state) do
     if retries > 0 or retries <= -1 do
       {etag, response} =
-        case Client.features(etag) do
+        case Unleash.Config.client().features(etag) do
           :cached -> {etag, state}
           x -> x
         end
