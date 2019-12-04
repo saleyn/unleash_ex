@@ -23,7 +23,7 @@ defmodule Unleash.Client do
       "Request sent to features with #{inspect(headers, pretty: true)}"
     end)
 
-    response = Mojito.get("#{Config.url()}/client/features", headers)
+    response = Config.http_client().get("#{Config.url()}/client/features", headers)
 
     Logger.debug(fn ->
       "Result from features was #{inspect(response, pretty: true)}"
@@ -60,6 +60,11 @@ defmodule Unleash.Client do
     case mojito do
       %Mojito.Response{status_code: 304} -> :cached
       %Mojito.Response{status_code: 200} -> pull_out_data(mojito)
+      resp = %Mojito.Response{status_code: _status} ->
+        Logger.warn(fn ->
+          "Unexpected response #{inspect resp}. Using cached features"
+        end)
+        :cached
     end
   end
 
@@ -86,7 +91,7 @@ defmodule Unleash.Client do
       data
       |> tag_data()
       |> Jason.encode!()
-      |> (&Mojito.post(url, headers(), &1)).()
+      |> (&Config.http_client().post(url, headers(), &1)).()
 
     Logger.debug(fn ->
       "Request sent to #{url} with #{inspect(data, pretty: true)}"
