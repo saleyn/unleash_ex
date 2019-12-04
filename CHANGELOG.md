@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1
+* Suport Running With Distillery [!10](https://gitlab.com/afontaine/unleash_ex/merge_requests/10) Thanks [Thomas Chandler](https://gitlab.com/thomaschandler)!
+* Use cached features when unexpected response received from Unleash server [!11](https://gitlab.com/afontaine/unleash_ex/merge_requests/11) Thanks [Thomas Chandler](https://gitlab.com/thomaschandler)!
+
 ## 1.4.0
 * Add Support for Capturing Metrics on Variants [!7](https://gitlab.com/afontaine/unleash_ex/merge_requests/7)
 
