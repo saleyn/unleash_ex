@@ -28,10 +28,19 @@ defmodule Unleash.Repo do
     GenServer.call(Unleash.Repo, {:get_feature, name})
   end
 
+  def get_all_feature_names do
+    GenServer.call(Unleash.Repo, {:get_all_feature_names})
+  end
+
   def handle_call({:get_feature, name}, _from, state) do
     feature = Features.get_feature(state, name)
 
     {:reply, feature, state}
+  end
+
+  def handle_call({:get_all_feature_names}, _from, state) do
+    names = Features.get_all_feature_names(state)
+    {:reply, names, state}
   end
 
   def handle_info({:initialize, etag, retries}, state) do

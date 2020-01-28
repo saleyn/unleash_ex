@@ -43,5 +43,15 @@ defmodule Unleash.Features do
     |> Enum.find(fn feature -> compare(feature.name, feat) end)
   end
 
+  def get_all_feature_names(nil), do: []
+
+  def get_all_feature_names(%__MODULE__{features: nil}), do: []
+
+  def get_all_feature_names(%__MODULE__{features: features}) do
+    Enum.map(features, fn %Feature{name: name} ->
+      name
+    end)
+  end
+
   defp compare(n1, n2), do: String.downcase(n1) == String.downcase(n2)
 end
