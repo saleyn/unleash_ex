@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.0
+* Add ability to fetch all feature flag names [decfa826](https://gitlab.com/afontaine/unleash_ex/commit/decfa826fca2d656a61f8e77c29138ea28214473)
+
 ## 1.4.1
 * Suport Running With Distillery [!10](https://gitlab.com/afontaine/unleash_ex/merge_requests/10) Thanks [Thomas Chandler](https://gitlab.com/thomaschandler)!
 * Use cached features when unexpected response received from Unleash server [!11](https://gitlab.com/afontaine/unleash_ex/merge_requests/11) Thanks [Thomas Chandler](https://gitlab.com/thomaschandler)!
