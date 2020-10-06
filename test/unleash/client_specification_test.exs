@@ -42,12 +42,6 @@ defmodule Unleash.ClientSpecificationTest do
         @expected expected
 
         @tag capture_log: true
-        if String.starts_with?(name, "09-strategy-constraints") do
-          @tag skip: true
-        else
-          @tag skip: false
-        end
-
         test t do
           context = entity_from_file(@context)
 
@@ -76,7 +70,11 @@ defmodule Unleash.ClientSpecificationTest do
 
   defp entity_from_file(e) do
     e
-    |> Enum.map(fn {k, v} -> {String.to_atom(Recase.to_snake(k)), v} end)
+    |> Enum.map(fn
+      {"payload", v} -> {:payload, v}
+      {k, v} when is_map(v) -> {String.to_atom(Recase.to_snake(k)), entity_from_file(v)}
+      {k, v} -> {String.to_atom(Recase.to_snake(k)), v}
+    end)
     |> Enum.into(%{})
   end
 end

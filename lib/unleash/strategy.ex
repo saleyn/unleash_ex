@@ -16,6 +16,7 @@ defmodule Unleash.Strategy do
   require Logger
 
   alias Unleash.Config
+  alias Unleash.Strategy.Constraint
 
   defmacro __using__(opts) do
     name = opts[:name]
@@ -49,7 +50,7 @@ defmodule Unleash.Strategy do
 
   * `parameters` - A map of paramters returned from the Unleash server. This
     can be whatever you like, such as a configured list of `userIds`.
-  * `context` - The context passed into `Unleash.enabled?/3`. 
+  * `context` - The context passed into `Unleash.enabled?/3`.
 
 
   ## Examples
@@ -72,7 +73,7 @@ defmodule Unleash.Strategy do
       Config.strategies()
       |> Enum.find(fn {n, _mod} -> n == name end)
 
-    module.check_enabled(strategy["parameters"], context)
+    check_constraints(strategy, context) and module.check_enabled(strategy["parameters"], context)
   end
 
   def enabled?(_strat, _context), do: false
@@ -97,4 +98,9 @@ defmodule Unleash.Strategy do
 
     result
   end
+
+  defp check_constraints(%{"constraints" => constraints}, context),
+    do: Constraint.verify_all(constraints, context)
+
+  defp check_constraints(_strategy, _context), do: true
 end
