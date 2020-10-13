@@ -61,6 +61,8 @@ defmodule Unleash.PlugTest do
       })
 
     {:ok, _pid} = start_supervised({Unleash.Repo, state})
+
+    Application.put_env(:unleash, Unleash, disable_client: false)
     :ok
   end
 
