@@ -42,6 +42,12 @@ defmodule Unleash.ClientSpecificationTest do
         @expected expected
 
         @tag capture_log: true
+        if String.starts_with?(name, "09-strategy-constraints") do
+          @tag skip: true
+        else
+          @tag skip: false
+        end
+
         test t do
           context = entity_from_file(@context)
 

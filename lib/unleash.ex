@@ -96,8 +96,11 @@ defmodule Unleash do
       feature
       |> Repo.get_feature()
       |> case do
-        nil -> {feature, default}
-        feature -> {feature, Feature.enabled?(feature, context)}
+        nil ->
+          {feature, default}
+
+        feature ->
+          {feature, Feature.enabled?(feature, Map.put(context, :feature_toggle, feature.name))}
       end
       |> Metrics.add_metric()
     end
