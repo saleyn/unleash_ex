@@ -14,12 +14,18 @@ defmodule Unleash.Config do
     disable_metrics: false,
     retries: -1,
     client: Unleash.Client,
-    http_client: Mojito
+    http_client: Mojito,
+    app_env: :test
   ]
 
   def url do
     application_env()
     |> Keyword.fetch!(:url)
+  end
+
+  def test? do
+    application_env()
+    |> Keyword.fetch!(:app_env) == :test
   end
 
   def appname do

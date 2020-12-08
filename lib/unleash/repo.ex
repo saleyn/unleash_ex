@@ -17,7 +17,7 @@ defmodule Unleash.Repo do
   def start_link(state) do
     {:ok, pid} = GenServer.start_link(__MODULE__, state, name: Unleash.Repo)
 
-    unless Code.ensure_loaded?(Mix) and Mix.env() == :test do
+    unless Config.test? do
       initialize()
     end
 
