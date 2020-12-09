@@ -31,7 +31,7 @@ defmodule Unleash.Metrics do
   def start_link(state, opts \\ []) do
     {:ok, pid} = GenServer.start_link(__MODULE__, state, opts)
 
-    unless Code.ensure_loaded?(Mix) and Mix.env() == :test do
+    unless Config.test? do
       initialize(pid)
     end
 
@@ -53,7 +53,7 @@ defmodule Unleash.Metrics do
     {:noreply, send_metrics(state)}
   end
 
-  if Code.ensure_loaded?(Mix) and Mix.env() == :test do
+  if Config.test? do
     def handle_call(:send_metrics, _from, state) do
       {:reply, :ok, send_metrics(state)}
     end
