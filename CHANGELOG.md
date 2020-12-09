@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.0
+* Add Flexible Rollout Strategy [!12](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/12)
+* Support Constraints for Feature Flags [!14](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/14)
+* Avoid using Mix.env at runtime [!16](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/16) Thanks [Daniel Cooper](https://gitlab.com/danielcooper)!
+
 ## 1.5.0
 * Add ability to fetch all feature flag names [decfa826](https://gitlab.com/afontaine/unleash_ex/commit/decfa826fca2d656a61f8e77c29138ea28214473)
 
