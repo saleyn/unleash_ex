@@ -27,7 +27,7 @@ defmodule Unleash.Strategy.Utils do
     |> String.split(",")
     |> Stream.map(&String.trim/1)
     |> Stream.map(transform)
-    |> Enum.member?(member)
+    |> Enum.member?(transform.(member))
   end
 
   def in_list?(_list, _member, _transform), do: false
