@@ -62,7 +62,7 @@ defmodule Unleash.MixProject do
       {:mox, "~> 0.5.1", only: :test},
       {:recase, "~> 0.6.0"},
       {:murmur, "~> 1.0"},
-      {:mojito, "~> 0.5.0"},
+      {:mojito, "~> 0.7.6"},
       {:jason, "~> 1.1"},
       {:plug, "~> 1.8", optional: true},
       {:phoenix_gon, "~> 0.4.0", optional: true}
