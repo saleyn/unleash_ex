@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0
+* Also transform the member in a list query [!17](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/17) Thanks [Daniel Cooper](https://gitlab.com/danielcooper)!
+* Update mojito to current [!18](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/18) Thanks [Daniel Cooper](https://gitlab.com/danielcooper)!
+
 ## 1.6.0
 * Add Flexible Rollout Strategy [!12](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/12)
 * Support Constraints for Feature Flags [!14](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/14)
