@@ -76,6 +76,13 @@ defmodule Unleash.Repo do
     end
   end
 
+  # https://github.com/appcues/mojito/issues/57
+  # Work around for messages received from Mojito after we've passed over the timeout
+  # threshold.
+  def handle_info({:mojito_response, _ref, _message}, state) do
+    {:noreply, state}
+  end
+
   defp read_state(%Features{features: []} = state) do
     if File.exists?(Config.backup_file()) do
       Config.backup_file()
