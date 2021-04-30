@@ -18,24 +18,12 @@ defmodule Unleash.Variant do
           optional(:payload) => map()
         }
 
-  def select_variant(%Feature{variants: variants, name: name}, context)
+  def select_variant(%Feature{variants: variants} = feature, context)
       when is_list(variants) and length(variants) > 0 do
-    total_weight =
-      variants
-      |> Enum.map(fn %{weight: w} -> w end)
-      |> Enum.sum()
-
-    variants
-    |> find_override(context)
-    |> case do
-      nil ->
-        variants
-        |> find_variant(Utils.normalize(get_seed(context), name, total_weight))
-
-      v ->
-        v
+    case Feature.enabled?(feature, context) do
+      true -> variants(feature, context)
+      _ -> disabled()
     end
-    |> to_map(true)
   end
 
   def from_map(map) when is_map(map) do
@@ -100,4 +88,32 @@ defmodule Unleash.Variant do
   defp get_context_name("userId"), do: :user_id
   defp get_context_name("sessionId"), do: :session_id
   defp get_context_name("remoteAddress"), do: :remote_address
+
+  defp disabled do
+    %{
+      enabled: false,
+      name: "disabled",
+      payload: %{}
+    }
+  end
+
+  defp variants(%Feature{variants: variants, name: name}, context)
+       when is_list(variants) and length(variants) > 0 do
+    total_weight =
+      variants
+      |> Enum.map(fn %{weight: w} -> w end)
+      |> Enum.sum()
+
+    variants
+    |> find_override(context)
+    |> case do
+      nil ->
+        variants
+        |> find_variant(Utils.normalize(get_seed(context), name, total_weight))
+
+      v ->
+        v
+    end
+    |> to_map(true)
+  end
 end

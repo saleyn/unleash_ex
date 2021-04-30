@@ -193,7 +193,7 @@ defmodule UnleashTest do
           "name" => "variant",
           "description" => "variant",
           "enabled" => true,
-          "startegies" => [
+          "strategies" => [
             %{
               "name" => "default",
               "parameters" => %{}
