@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.0
+
+* Use ETS cache to store features rather than Genserver state
+  [!22](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/22) Thanks
+  [Maximilien Rothier Bautzer](https://gitlab.com/cachemoi)
+
 ## 1.7.2
 * Disabled flags should not produce an active variant [!20](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/20) Thanks [Daniel Cooper](https://gitlab.com/danielcooper)
 
