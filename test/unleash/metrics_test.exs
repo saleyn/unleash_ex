@@ -115,4 +115,18 @@ defmodule Unleash.MetricsTest do
       end
     end
   end
+
+  describe "start metrics" do
+    test "should start named process under supervisor" do
+      {:ok, _} =
+        Supervisor.start_link(
+          [
+            {Unleash.Metrics, name: :metric_named_process}
+          ],
+          strategy: :one_for_one
+        )
+
+      assert Process.whereis(:metric_named_process) != nil
+    end
+  end
 end
