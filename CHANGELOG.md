@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.1
+* fix Unleash.Metrics to provide proper start_link/1 behaviour [!23](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/23) Thanks [calvinsadewa](https://gitlab.com/calvin-kargo)!
+
 ## 1.8.0
 
 * Use ETS cache to store features rather than Genserver state
