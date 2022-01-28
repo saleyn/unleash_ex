@@ -28,10 +28,14 @@ defmodule Unleash.Metrics do
     {:ok, init_state()}
   end
 
-  def start_link(state, opts \\ []) do
+  def start_link(opts) do
+    start_link(init_state(), opts)
+  end
+
+  def start_link(state, opts) do
     {:ok, pid} = GenServer.start_link(__MODULE__, state, opts)
 
-    unless Config.test? do
+    unless Config.test?() do
       initialize(pid)
     end
 
@@ -53,7 +57,7 @@ defmodule Unleash.Metrics do
     {:noreply, send_metrics(state)}
   end
 
-  if Config.test? do
+  if Config.test?() do
     def handle_call(:send_metrics, _from, state) do
       {:reply, :ok, send_metrics(state)}
     end
