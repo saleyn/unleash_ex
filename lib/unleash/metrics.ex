@@ -88,6 +88,10 @@ defmodule Unleash.Metrics do
     |> (&Map.put(state, :toggles, &1)).()
   end
 
+  defp handle_metric(state, _feature, _enabled?) do
+    state
+  end
+
   defp update_metric(features, feature, true) do
     features
     |> Map.update(feature, %{yes: 1, no: 0}, &Map.update!(&1, :yes, fn x -> x + 1 end))
