@@ -2,6 +2,15 @@
 
 <!-- %% CHANGELOG_ENTRIES %% -->
 
+## 1.8.3 - 2022-05-31
+
+* fix: Avoid crash when mojito connect is closed for the metrics client
+  [!26](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/26) Thanks [John Bell](https://gitlab.com/johnabell)!
+* fix: Feature flag without variants cause FunctionClause Error
+  [!25](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/25) Thanks
+  [Ulisses Almeida](https://gitlab.com/ulissesalmeida)
+
+
 ## 1.8.2
 * fix `Unleash.Metrics.add_metrics` ccrash for unrecorded feature_toggle [!24](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/24) Thanks [calvin-kargo](https://gitlab.com/calvin-kargo)!
 
