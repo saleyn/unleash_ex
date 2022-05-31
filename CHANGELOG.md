@@ -1,5 +1,7 @@
 # Changelog
 
+<!-- %% CHANGELOG_ENTRIES %% -->
+
 ## 1.8.2
 * fix `Unleash.Metrics.add_metrics` ccrash for unrecorded feature_toggle [!24](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/24) Thanks [calvin-kargo](https://gitlab.com/calvin-kargo)!
 

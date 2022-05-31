@@ -24,3 +24,4 @@ unleash-*.tar
 
 .elixir_ls/
 .direnv/
+/RELEASE.md
