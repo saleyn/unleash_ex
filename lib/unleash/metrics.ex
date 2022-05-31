@@ -57,9 +57,18 @@ defmodule Unleash.Metrics do
     {:noreply, send_metrics(state)}
   end
 
-  def handle_info({:mojito_response, _ref, message}, state) do
-    Logger.warning("Unexpected response from Mojito #{inspect(message, pretty: true)}")
-    {:noreply, send_metrics(state)}
+  if Version.match?(System.version(), ">= 1.11.0") do
+    def handle_info({:mojito_response, _ref, message}, state) do
+      Logger.warning("Unexpected response from Mojito #{inspect(message, pretty: true)}")
+
+      {:noreply, send_metrics(state)}
+    end
+  else
+    def handle_info({:mojito_response, _ref, message}, state) do
+      Logger.warn("Unexpected response from Mojito #{inspect(message, pretty: true)}")
+
+      {:noreply, send_metrics(state)}
+    end
   end
 
   if Config.test?() do
