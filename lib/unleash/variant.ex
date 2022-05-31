@@ -26,6 +26,8 @@ defmodule Unleash.Variant do
     end
   end
 
+  def select_variant(_feature, _context), do: disabled()
+
   def from_map(map) when is_map(map) do
     %__MODULE__{
       name: map["name"],
@@ -89,11 +91,10 @@ defmodule Unleash.Variant do
   defp get_context_name("sessionId"), do: :session_id
   defp get_context_name("remoteAddress"), do: :remote_address
 
-  defp disabled do
+  def disabled do
     %{
       enabled: false,
-      name: "disabled",
-      payload: %{}
+      name: "disabled"
     }
   end
 
