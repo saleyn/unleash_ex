@@ -126,7 +126,7 @@ defmodule Unleash do
       %{enabled: false, name: "disabled"}
   """
   @spec get_variant(atom() | String.t(), map(), Variant.result()) :: Variant.result()
-  def get_variant(name, context \\ %{}, fallback \\ %{name: "disabled", enabled: false}) do
+  def get_variant(name, context \\ %{}, fallback \\ Variant.disabled()) do
     if Config.disable_client() do
       Logger.warn(fn ->
         "Client is disabled, it will only return the fallback: #{Jason.encode!(fallback)}"

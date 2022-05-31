@@ -6,9 +6,22 @@ defmodule Unleash.VariantTest do
   test "return a disabled variant if the flag is disabled" do
     assert %{
              enabled: false,
-             name: "disabled",
-             payload: %{}
+             name: "disabled"
            } == Unleash.get_variant(:disabled_variant)
+  end
+
+  test "returns a disabled variant for nonexistent flag" do
+    assert %{
+             enabled: false,
+             name: "disabled"
+           } == Unleash.get_variant(:nonexistent_flag)
+  end
+
+  test "returns a disabled variant for a flag without variants" do
+    assert %{
+             enabled: false,
+             name: "disabled"
+           } == Unleash.get_variant(:flag_without_variants)
   end
 
   defp start_repo(_) do
@@ -41,6 +54,18 @@ defmodule Unleash.VariantTest do
               "payload" => %{"type" => "string", "value" => "val1"}
             }
           ]
+        },
+        %{
+          "name" => "flag_without_variants",
+          "description" => "a flag with empty variants",
+          "enabled" => true,
+          "strategies" => [
+            %{
+              "name" => "default",
+              "parameters" => %{}
+            }
+          ],
+          "variants" => []
         }
       ]
     }
