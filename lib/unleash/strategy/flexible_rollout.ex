@@ -23,7 +23,7 @@ defmodule Unleash.Strategy.FlexibleRollout do
        %{
          group: group,
          percentage: percentage,
-         sticky_vaule: sticky_value,
+         sticky_value: sticky_value,
          stickiness: Map.get(params, "stickiness")
        }}
     else

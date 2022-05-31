@@ -57,6 +57,11 @@ defmodule Unleash.Metrics do
     {:noreply, send_metrics(state)}
   end
 
+  def handle_info({:mojito_response, _ref, message}, state) do
+    Logger.warning("Unexpected response from Mojito #{inspect(message, pretty: true)}")
+    {:noreply, send_metrics(state)}
+  end
+
   if Config.test?() do
     def handle_call(:send_metrics, _from, state) do
       {:reply, :ok, send_metrics(state)}

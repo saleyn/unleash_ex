@@ -15,8 +15,8 @@ defmodule UnleashTest do
       Application.put_env(:unleash, Unleash, http_client: MojitoMock)
 
       assert capture_log(fn ->
-        Unleash.Client.features()
-      end) =~ ~r/Unexpected response.+Using cached features/
+               Unleash.Client.features()
+             end) =~ ~r/Unexpected response.+Using cached features/
     end
   end
 

@@ -1,4 +1,4 @@
 [submodule "priv/client-specification"]
 	path = priv/client-specification
-	url = git://github.com/unleash/client-specification
+	url = https://github.com/unleash/client-specification
 	branch = master
