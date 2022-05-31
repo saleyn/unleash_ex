@@ -58,12 +58,17 @@ defmodule Unleash.Client do
 
   defp handle_feature_response(mojito) do
     case mojito do
-      %Mojito.Response{status_code: 304} -> :cached
-      %Mojito.Response{status_code: 200} -> pull_out_data(mojito)
+      %Mojito.Response{status_code: 304} ->
+        :cached
+
+      %Mojito.Response{status_code: 200} ->
+        pull_out_data(mojito)
+
       resp = %Mojito.Response{status_code: _status} ->
         Logger.warn(fn ->
-          "Unexpected response #{inspect resp}. Using cached features"
+          "Unexpected response #{inspect(resp)}. Using cached features"
         end)
+
         :cached
     end
   end

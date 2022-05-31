@@ -44,10 +44,10 @@ defmodule Unleash.MetricsTest do
 
     test "should not crash metric for unrecorded toggle", %{metrics: metrics} do
       Unleash.Metrics.add_metric({:unrecorded_feature_toggle, false}, metrics)
-      
+
       # Force metrics to process message
       :sys.get_state(metrics)
-      
+
       assert Process.alive?(metrics)
     end
   end

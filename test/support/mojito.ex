@@ -8,11 +8,11 @@ defmodule Mojito.Behavior do
           status_code: pos_integer,
           headers: headers,
           body: String.t(),
-          complete: boolean,
+          complete: boolean
         }
   @type error :: %Mojito.Error{
           reason: any,
-          message: String.t() | nil,
+          message: String.t() | nil
         }
 
   @callback get(String.t(), headers) :: {:ok, response} | {:error, error} | no_return
