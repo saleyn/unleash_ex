@@ -17,19 +17,22 @@ defmodule Unleash.Client do
   @content_type {"Content-Type", "application/json"}
 
   @telemetry_features_prefix [:unleash, :client, :fetch_features]
+  @telemetry_register_prefix [:unleash, :client, :register]
 
   def features(etag \\ nil) do
     headers = headers(etag)
+    url = "#{Config.url()}/client/features"
 
     Logger.debug(fn ->
       "Request sent to features with #{inspect(headers, pretty: true)}"
     end)
 
+    start_metadata = telemetry_metadata(%{etag: etag, url: url})
+
     :telemetry.span(
       @telemetry_features_prefix,
-      telemetry_metadata(%{etag: etag}),
+      start_metadata,
       fn ->
-        url = "#{Config.url()}/client/features"
         result = Config.http_client().get(url, headers)
 
         Logger.debug(fn ->
@@ -39,11 +42,10 @@ defmodule Unleash.Client do
         case result do
           {:ok, response} ->
             {result, metadata} = handle_feature_response(response)
-
-            {result, telemetry_metadata(metadata)}
+            {result, Map.merge(start_metadata, metadata)}
 
           {:error, error} ->
-            {{nil, error}, telemetry_metadata(%{error: error})}
+            {{nil, error}, Map.put(start_metadata, :error, error)}
         end
       end
     )
@@ -60,9 +62,34 @@ defmodule Unleash.Client do
         interval: Config.metrics_period()
       })
 
-  def register(client), do: send_data("#{Config.url()}/client/register", client)
+  def register(client) do
+    url = "#{Config.url()}/client/register"
 
-  def metrics(met), do: send_data("#{Config.url()}/client/metrics", met)
+    start_metadata =
+      client
+      |> Map.take([:sdkVersion, :strategies, :interval])
+      |> Map.new(fn
+        {:sdkVersion, value} -> {:sdk_version, value}
+        {key, value} -> {key, value}
+      end)
+      |> Map.put(:url, url)
+      |> telemetry_metadata()
+
+    :telemetry.span(
+      @telemetry_register_prefix,
+      start_metadata,
+      fn ->
+        {result, metadata}= send_data(url, client)
+        {result, Map.merge(start_metadata, metadata)}
+      end
+    )
+  end
+
+  def metrics(met) do
+    {result, _metadata} = send_data("#{Config.url()}/client/metrics", met)
+
+    result
+  end
 
   defp handle_feature_response(mojito) do
     case mojito do
@@ -109,18 +136,20 @@ defmodule Unleash.Client do
     end)
 
     case result do
-      {:ok, r} ->
+      {:ok, %Mojito.Response{status_code: status_code} = response} ->
         Logger.debug(fn ->
-          "Result from #{url} was #{inspect(r, pretty: true)}"
+          "Result from #{url} was #{inspect(response, pretty: true)}"
         end)
+
+        {{:ok, response}, %{http_response_status: status_code}}
 
       {:error, e} ->
         Logger.error(fn ->
           "Request #{inspect(data, pretty: true)} failed with result #{inspect(e, pretty: true)}"
         end)
-    end
 
-    result
+        {{:error, e}, %{error: e}}
+    end
   end
 
   defp headers(nil), do: headers()
