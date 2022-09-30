@@ -16,6 +16,8 @@ defmodule Unleash.Client do
   @accept {"Accept", "application/json"}
   @content_type {"Content-Type", "application/json"}
 
+  @telemetry_features_prefix [:unleash, :client, :fetch_features]
+
   def features(etag \\ nil) do
     headers = headers(etag)
 
@@ -23,22 +25,28 @@ defmodule Unleash.Client do
       "Request sent to features with #{inspect(headers, pretty: true)}"
     end)
 
-    response = Config.http_client().get("#{Config.url()}/client/features", headers)
+    :telemetry.span(
+      @telemetry_features_prefix,
+      telemetry_metadata(%{etag: etag}),
+      fn ->
+        url = "#{Config.url()}/client/features"
+        result = Config.http_client().get(url, headers)
 
-    Logger.debug(fn ->
-      "Result from features was #{inspect(response, pretty: true)}"
-    end)
+        Logger.debug(fn ->
+          "Result from features was #{inspect(result, pretty: true)}"
+        end)
 
-    response =
-      case response do
-        {:ok, mojito} -> mojito
-        error -> error
+        case result do
+          {:ok, response} ->
+            {result, metadata} = handle_feature_response(response)
+
+            {result, telemetry_metadata(metadata)}
+
+          {:error, error} ->
+            {{nil, error}, telemetry_metadata(%{error: error})}
+        end
       end
-
-    case response do
-      {:error, _} = error -> {nil, error}
-      mojito -> handle_feature_response(mojito)
-    end
+    )
   end
 
   def register_client,
@@ -59,36 +67,34 @@ defmodule Unleash.Client do
   defp handle_feature_response(mojito) do
     case mojito do
       %Mojito.Response{status_code: 304} ->
-        :cached
+        {:cached, %{http_response_status: 304}}
 
       %Mojito.Response{status_code: 200} ->
         pull_out_data(mojito)
 
-      resp = %Mojito.Response{status_code: _status} ->
+      resp = %Mojito.Response{status_code: status} ->
         Logger.warn(fn ->
           "Unexpected response #{inspect(resp)}. Using cached features"
         end)
 
-        :cached
+        {:cached, %{http_response_status: status}}
     end
   end
 
   defp pull_out_data(mojito) do
     features =
       mojito
-      |> Map.from_struct()
       |> Map.get(:body, "")
       |> Jason.decode!()
       |> Features.from_map!()
 
     etag =
       mojito
-      |> Map.from_struct()
       |> Map.get(:headers, [])
-      |> Enum.into(%{})
+      |> Map.new()
       |> Map.get("etag", nil)
 
-    {etag, features}
+    {{etag, features}, %{http_response_status: 200, etag: etag}}
   end
 
   defp send_data(url, data) do
@@ -136,5 +142,12 @@ defmodule Unleash.Client do
     data
     |> Map.put(:appName, Config.appname())
     |> Map.put(:instanceId, Config.instance_id())
+  end
+
+  def telemetry_metadata(metadata \\ %{}) do
+    Map.merge(
+      %{appname: Config.appname(), instance_id: Config.instance_id()},
+      metadata
+    )
   end
 end

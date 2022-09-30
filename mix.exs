@@ -64,6 +64,7 @@ defmodule Unleash.MixProject do
       {:murmur, "~> 1.0"},
       {:mojito, "~> 0.7.6"},
       {:jason, "~> 1.1"},
+      {:telemetry, "~> 1.1"},
       {:plug, "~> 1.8", optional: true},
       {:phoenix_gon, "~> 0.4.0", optional: true}
     ]
