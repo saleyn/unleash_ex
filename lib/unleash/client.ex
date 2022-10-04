@@ -18,6 +18,7 @@ defmodule Unleash.Client do
 
   @telemetry_features_prefix [:unleash, :client, :fetch_features]
   @telemetry_register_prefix [:unleash, :client, :register]
+  @telemetry_metrics_prefix [:unleash, :client, :push_metrics]
 
   def features(etag \\ nil) do
     headers = headers(etag)
@@ -79,16 +80,22 @@ defmodule Unleash.Client do
       @telemetry_register_prefix,
       start_metadata,
       fn ->
-        {result, metadata}= send_data(url, client)
+        {result, metadata} = send_data(url, client)
         {result, Map.merge(start_metadata, metadata)}
       end
     )
   end
 
   def metrics(met) do
-    {result, _metadata} = send_data("#{Config.url()}/client/metrics", met)
+    url = "#{Config.url()}/client/metrics"
 
-    result
+    start_metadata = telemetry_metadata(%{url: url})
+
+    :telemetry.span(@telemetry_metrics_prefix, start_metadata, fn ->
+      {result, metadata} = send_data(url, met)
+
+      {result, Map.merge(start_metadata, metadata)}
+    end)
   end
 
   defp handle_feature_response(mojito) do

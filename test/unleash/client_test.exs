@@ -138,7 +138,7 @@ defmodule Unleash.ClientTest do
 
       assert metadata[:sdk_version] == "unleash_ex:1.8.3"
       assert is_list(metadata[:strategies])
-      assert metadata[:interval] == 600000
+      assert metadata[:interval] == 600_000
     end
 
     test "publishes stop event with measurements" do
@@ -162,7 +162,7 @@ defmodule Unleash.ClientTest do
 
       assert metadata[:sdk_version] == "unleash_ex:1.8.3"
       assert is_list(metadata[:strategies])
-      assert metadata[:interval] == 600000
+      assert metadata[:interval] == 600_000
 
       assert is_number(measurements[:duration])
     end
@@ -202,15 +202,95 @@ defmodule Unleash.ClientTest do
 
       assert metadata[:sdk_version] == "unleash_ex:1.8.3"
       assert is_list(metadata[:strategies])
-      assert metadata[:interval] == 600000
+      assert metadata[:interval] == 600_000
 
       assert is_number(measurements[:duration])
 
       assert metadata[:kind] == :error
       assert is_list(metadata[:stacktrace])
       assert %RuntimeError{} = metadata[:reason]
+    end
+  end
+
+  describe "metrics/1" do
+    test "publishes start event" do
+      MojitoMock
+      |> expect(:post, fn _url, _body, _headers ->
+        {:ok, %Mojito.Response{status_code: 200}}
+      end)
+
+      attach_telemetry_event([:unleash, :client, :push_metrics, :start])
+
+      assert {:ok, %Mojito.Response{}} = Client.metrics(%{})
+
+      assert_received {:telemetry_metadata, metadata}
+
+      assert metadata[:appname] == "myapp"
+      assert metadata[:instance_id] == "node@a"
+
+      assert metadata[:url] =~ "client/metrics"
+    end
+
+    test "publishes stop event with measurements" do
+      MojitoMock
+      |> expect(:post, fn _url, _body, _headers ->
+        {:ok, %Mojito.Response{status_code: 200}}
+      end)
+
+      attach_telemetry_event([:unleash, :client, :push_metrics, :stop])
+
+      assert {:ok, %Mojito.Response{}} = Client.metrics(%{})
+
+      assert_received {:telemetry_metadata, metadata}
+      assert_received {:telemetry_measurements, measurements}
+
+      assert metadata[:appname] == "myapp"
+      assert metadata[:instance_id] == "node@a"
+
+      assert metadata[:url] =~ "client/metrics"
+      assert metadata[:http_response_status] == 200
 
       assert is_number(measurements[:duration])
+    end
+
+    test "publishes stop with an error event" do
+      MojitoMock
+      |> expect(:post, fn _url, _body, _headers ->
+        {:error, %Mojito.Error{message: "Network unavailable"}}
+      end)
+
+      attach_telemetry_event([:unleash, :client, :push_metrics, :stop])
+
+      assert {:error, %Mojito.Error{}} = Client.metrics(%{})
+
+      assert_received {:telemetry_metadata, metadata}
+
+      assert %Mojito.Error{} = metadata[:error]
+    end
+
+    test "publishes exception event with measurements" do
+      MojitoMock
+      |> expect(:post, fn _url, _body, _headers ->
+        raise "Unexpected error"
+      end)
+
+      attach_telemetry_event([:unleash, :client, :push_metrics, :exception])
+
+      assert_raise RuntimeError, fn -> Client.metrics(%{}) end
+
+      assert_received {:telemetry_metadata, metadata}
+      assert_received {:telemetry_measurements, measurements}
+
+      assert metadata[:appname] == "myapp"
+      assert metadata[:instance_id] == "node@a"
+
+      assert metadata[:url] =~ "client/metrics"
+
+      assert is_number(measurements[:duration])
+
+      assert metadata[:kind] == :error
+      assert is_list(metadata[:stacktrace])
+      assert %RuntimeError{} = metadata[:reason]
     end
   end
 
