@@ -9,7 +9,7 @@ defmodule UnleashTest do
       MojitoMock
       |> stub(:post, fn _, _, _ -> {:ok, %Mojito.Response{}} end)
       |> expect(:get, fn _url, _headers ->
-        %Mojito.Response{status_code: 502}
+        {:ok, %Mojito.Response{status_code: 502}}
       end)
 
       Application.put_env(:unleash, Unleash, http_client: MojitoMock)

@@ -103,3 +103,44 @@ configuration:
     ```elixir
     config :unleash, Unleash, strategies: MyApp.Strategies
     ```
+
+## Telemetry events
+
+The following events are emitted by the Unleash:
+
+* `[:unleash, :client, :features, :start]` - dispatched by `Unleash.Client` whenever
+it start to fetch features from a remote Unleash server.
+  * Measurement:  `%{system_time: system_time, monotonic_time: monotonic_time}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), etag: String.t() | nil, url: String.t()}`
+* `[:unleash, :client, :features, :stop]` - dispatched by `Unleash.Client` whenever
+it finishes to fetch features from a remote Unleash server.
+  * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), etag: String.t() | nil, url: String.t(), http_response_status: pos_integer | nil, error: struct() | nil}`
+* `[:unleash, :client, :features, :exception]` - dispatched by `Unleash.Client` after
+exceptions on fetching features.
+  * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), etag: String.t() | nil, url: String.t(), kind: :throw | :error | :exit, reason: term(), stacktrace: Exception.stacktrace()}`
+* `[:unleash, :client, :register, :start]` - dispatched by `Unleash.Client` whenever
+it starts to register in an Unleash server.
+  * Measurement:  `%{system_time: system_time, monotonic_time: monotonic_time}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t(), sdk_version: String.t(), strategies: [String.t()], interval: pos_integer}`
+* `[:unleash, :client, :register, :stop]` - dispatched by `Unleash.Client` whenever
+it finishes to register in an Unleash server.
+  * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t(), sdk_version: String.t(), strategies: [String.t()], interval: pos_integer, http_response_status: pos_integer | nil, error: struct() | nil}`
+* `[:unleash, :client, :register, :exception]` - dispatched by `Unleash.Client` after
+exceptions on registering in an Unleash server.
+  * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t(), sdk_version: String.t(), strategies: [String.t()], interval: pos_integer, kind: :throw | :error | :exit, reason: term(), stacktrace: Exception.stacktrace()}`
+* `[:unleash, :client, :push_metrics, :start]` - dispatched by `Unleash.Client` whenever
+it starts to push metrics to an Unleash server.
+  * Measurement:  `%{system_time: system_time, monotonic_time: monotonic_time}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t()}`
+* `[:unleash, :client, :push_metrics, :stop]` - dispatched by `Unleash.Client` whenever
+it finishes to push metrics to an Unleash server.
+  * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t(), http_response_status: pos_integer | nil, error: struct() | nil}`
+* `[:unleash, :client, :push_metrics, :exception]` - dispatched by `Unleash.Client` after
+exceptions on pushing metrics to an Unleash server.
+  * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t(), kind: :throw | :error | :exit, reason: term(), stacktrace: Exception.stacktrace()}`
