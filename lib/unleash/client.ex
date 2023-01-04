@@ -16,29 +16,40 @@ defmodule Unleash.Client do
   @accept {"Accept", "application/json"}
   @content_type {"Content-Type", "application/json"}
 
+  @telemetry_features_prefix [:unleash, :client, :fetch_features]
+  @telemetry_register_prefix [:unleash, :client, :register]
+  @telemetry_metrics_prefix [:unleash, :client, :push_metrics]
+
   def features(etag \\ nil) do
     headers = headers(etag)
+    url = "#{Config.url()}/client/features"
 
     Logger.debug(fn ->
       "Request sent to features with #{inspect(headers, pretty: true)}"
     end)
 
-    response = Config.http_client().get("#{Config.url()}/client/features", headers)
+    start_metadata = telemetry_metadata(%{etag: etag, url: url})
 
-    Logger.debug(fn ->
-      "Result from features was #{inspect(response, pretty: true)}"
-    end)
+    :telemetry.span(
+      @telemetry_features_prefix,
+      start_metadata,
+      fn ->
+        result = Config.http_client().get(url, headers)
 
-    response =
-      case response do
-        {:ok, mojito} -> mojito
-        error -> error
+        Logger.debug(fn ->
+          "Result from features was #{inspect(result, pretty: true)}"
+        end)
+
+        case result do
+          {:ok, response} ->
+            {result, metadata} = handle_feature_response(response)
+            {result, Map.merge(start_metadata, metadata)}
+
+          {:error, error} ->
+            {{nil, error}, Map.put(start_metadata, :error, error)}
+        end
       end
-
-    case response do
-      {:error, _} = error -> {nil, error}
-      mojito -> handle_feature_response(mojito)
-    end
+    )
   end
 
   def register_client,
@@ -52,43 +63,72 @@ defmodule Unleash.Client do
         interval: Config.metrics_period()
       })
 
-  def register(client), do: send_data("#{Config.url()}/client/register", client)
+  def register(client) do
+    url = "#{Config.url()}/client/register"
 
-  def metrics(met), do: send_data("#{Config.url()}/client/metrics", met)
+    start_metadata =
+      client
+      |> Map.take([:sdkVersion, :strategies, :interval])
+      |> Map.new(fn
+        {:sdkVersion, value} -> {:sdk_version, value}
+        {key, value} -> {key, value}
+      end)
+      |> Map.put(:url, url)
+      |> telemetry_metadata()
+
+    :telemetry.span(
+      @telemetry_register_prefix,
+      start_metadata,
+      fn ->
+        {result, metadata} = send_data(url, client)
+        {result, Map.merge(start_metadata, metadata)}
+      end
+    )
+  end
+
+  def metrics(met) do
+    url = "#{Config.url()}/client/metrics"
+
+    start_metadata = telemetry_metadata(%{url: url})
+
+    :telemetry.span(@telemetry_metrics_prefix, start_metadata, fn ->
+      {result, metadata} = send_data(url, met)
+
+      {result, Map.merge(start_metadata, metadata)}
+    end)
+  end
 
   defp handle_feature_response(mojito) do
     case mojito do
       %Mojito.Response{status_code: 304} ->
-        :cached
+        {:cached, %{http_response_status: 304}}
 
       %Mojito.Response{status_code: 200} ->
         pull_out_data(mojito)
 
-      resp = %Mojito.Response{status_code: _status} ->
+      resp = %Mojito.Response{status_code: status} ->
         Logger.warn(fn ->
           "Unexpected response #{inspect(resp)}. Using cached features"
         end)
 
-        :cached
+        {:cached, %{http_response_status: status}}
     end
   end
 
   defp pull_out_data(mojito) do
     features =
       mojito
-      |> Map.from_struct()
       |> Map.get(:body, "")
       |> Jason.decode!()
       |> Features.from_map!()
 
     etag =
       mojito
-      |> Map.from_struct()
       |> Map.get(:headers, [])
-      |> Enum.into(%{})
+      |> Map.new()
       |> Map.get("etag", nil)
 
-    {etag, features}
+    {{etag, features}, %{http_response_status: 200, etag: etag}}
   end
 
   defp send_data(url, data) do
@@ -103,18 +143,20 @@ defmodule Unleash.Client do
     end)
 
     case result do
-      {:ok, r} ->
+      {:ok, %Mojito.Response{status_code: status_code} = response} ->
         Logger.debug(fn ->
-          "Result from #{url} was #{inspect(r, pretty: true)}"
+          "Result from #{url} was #{inspect(response, pretty: true)}"
         end)
+
+        {{:ok, response}, %{http_response_status: status_code}}
 
       {:error, e} ->
         Logger.error(fn ->
           "Request #{inspect(data, pretty: true)} failed with result #{inspect(e, pretty: true)}"
         end)
-    end
 
-    result
+        {{:error, e}, %{error: e}}
+    end
   end
 
   defp headers(nil), do: headers()
@@ -136,5 +178,12 @@ defmodule Unleash.Client do
     data
     |> Map.put(:appName, Config.appname())
     |> Map.put(:instanceId, Config.instance_id())
+  end
+
+  def telemetry_metadata(metadata \\ %{}) do
+    Map.merge(
+      %{appname: Config.appname(), instance_id: Config.instance_id()},
+      metadata
+    )
   end
 end
