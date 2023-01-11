@@ -86,24 +86,50 @@ defmodule Unleash do
   """
   @spec enabled?(atom() | String.t(), map(), boolean) :: boolean
   def enabled?(feature, context \\ %{}, default \\ false) do
-    if Config.disable_client() do
-      Logger.warn(fn ->
-        "Client is disabled, it will only return default: #{default}"
-      end)
+    start_metadata = Unleash.Client.telemetry_metadata(%{feature: feature})
 
-      default
-    else
-      feature
-      |> Repo.get_feature()
-      |> case do
-        nil ->
-          {feature, default}
+    :telemetry.span(
+      [:unleash, :feature, :enabled?],
+      start_metadata,
+      fn ->
+        {result, metadata} =
+          if Config.disable_client() do
+            Logger.warn(fn ->
+              "Client is disabled, it will only return default: #{default}"
+            end)
 
-        feature ->
-          {feature, Feature.enabled?(feature, Map.put(context, :feature_toggle, feature.name))}
+            {default, %{reason: :disabled_client}}
+          else
+            feature
+            |> Repo.get_feature()
+            |> case do
+              nil ->
+                {default, %{reason: :feature_not_found}}
+
+              feature ->
+                {result, strategy_evaluations} =
+                  Feature.enabled?(feature, Map.put(context, :feature_toggle, feature.name))
+
+                Metrics.add_metric({feature, result})
+
+                metadata = %{
+                  reason: :strategy_evaluations,
+                  strategy_evaluations: strategy_evaluations,
+                  feature_enabled: feature.enabled
+                }
+
+                {result, metadata}
+            end
+          end
+
+        telemetry_metadata =
+          start_metadata
+          |> Map.merge(metadata)
+          |> Map.put(:result, result)
+
+        {result, telemetry_metadata}
       end
-      |> Metrics.add_metric()
-    end
+    )
   end
 
   @doc """

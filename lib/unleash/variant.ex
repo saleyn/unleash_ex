@@ -21,7 +21,7 @@ defmodule Unleash.Variant do
   def select_variant(%Feature{variants: variants} = feature, context)
       when is_list(variants) and length(variants) > 0 do
     case Feature.enabled?(feature, context) do
-      true -> variants(feature, context)
+      {true, _} -> variants(feature, context)
       _ -> disabled()
     end
   end

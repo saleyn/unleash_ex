@@ -24,10 +24,10 @@ defmodule Unleash.Feature do
 
   def from_map(_), do: %__MODULE__{}
 
-  def enabled?(nil, _context), do: false
+  def enabled?(nil, _context), do: {false, []}
 
   def enabled?(%__MODULE__{enabled: enabled, strategies: []}, _context),
-    do: enabled
+    do: {enabled, []}
 
   def enabled?(%__MODULE__{enabled: enabled, strategies: strat} = feature, context)
       when is_list(strat) do
@@ -38,11 +38,16 @@ defmodule Unleash.Feature do
       |> (&"Strategies for feature #{feature.name} are: #{&1}").()
     end)
 
-    strat
-    |> Enum.map(fn strategy ->
-      Strategy.enabled?(strategy, context)
-    end)
-    |> Enum.any?(fn enabled? -> enabled? end)
-    |> Kernel.and(enabled)
+    strategy_evaluations =
+      Enum.map(strat, fn strategy ->
+        {strategy["name"], Strategy.enabled?(strategy, context)}
+      end)
+
+    result =
+      strategy_evaluations
+      |> Enum.any?(fn {_, enabled?} -> enabled? end)
+      |> Kernel.and(enabled)
+
+    {result, strategy_evaluations}
   end
 end
