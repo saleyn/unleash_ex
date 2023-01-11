@@ -108,6 +108,18 @@ configuration:
 
 The following events are emitted by the Unleash:
 
+* `[:unleash, :feature, :enabled?, :start]` - dispatched by `Unleash` whenever
+a feature state has been requested.
+  * Measurement:  `%{system_time: system_time, monotonic_time: monotonic_time}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), feature: String.t()}`
+* `[:unleash, :feature, :enabled?, :stop]` - dispatched by `Unleash` whenever
+a feature check has successfully returned a result.
+  * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), feature: String.t(), result: boolean(), reason: atom(), strategy_evaluations: [{String.t(), boolean()}], feature_enabled: boolean()}`
+* `[:unleash, :feature, :enabled?, :exception]` - dispatched by `Unleash` after
+exceptions on fetching a feature's activation state.
+  * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), feature: String.t(), kind: :throw | :error | :exit, reason: term(), stacktrace: Exception.stacktrace()}`
 * `[:unleash, :client, :features, :start]` - dispatched by `Unleash.Client` whenever
 it start to fetch features from a remote Unleash server.
   * Measurement:  `%{system_time: system_time, monotonic_time: monotonic_time}`
