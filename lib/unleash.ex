@@ -153,20 +153,34 @@ defmodule Unleash do
   """
   @spec get_variant(atom() | String.t(), map(), Variant.result()) :: Variant.result()
   def get_variant(name, context \\ %{}, fallback \\ Variant.disabled()) do
-    if Config.disable_client() do
-      Logger.warn(fn ->
-        "Client is disabled, it will only return the fallback: #{Jason.encode!(fallback)}"
-      end)
+    start_metadata = Unleash.Client.telemetry_metadata(%{variant: name})
 
-      fallback
-    else
-      name
-      |> Repo.get_feature()
-      |> case do
-        nil -> fallback
-        feature -> Variant.select_variant(feature, context)
+    :telemetry.span(
+      [:unleash, :variant, :get],
+      start_metadata,
+      fn ->
+        {result, metadata} =
+          if Config.disable_client() do
+            Logger.warn(fn ->
+              "Client is disabled, it will only return the fallback: #{Jason.encode!(fallback)}"
+            end)
+
+            {fallback, %{reason: :disabled_client}}
+          else
+            name
+            |> Repo.get_feature()
+            |> case do
+              nil ->
+                {fallback, %{reason: :feature_not_found}}
+
+              feature ->
+                Variant.select_variant(feature, context)
+            end
+          end
+
+        {result, Map.merge(start_metadata, metadata)}
       end
-    end
+    )
   end
 
   @doc false

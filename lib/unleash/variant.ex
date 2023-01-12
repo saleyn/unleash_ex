@@ -20,13 +20,21 @@ defmodule Unleash.Variant do
 
   def select_variant(%Feature{variants: variants} = feature, context)
       when is_list(variants) and length(variants) > 0 do
-    case Feature.enabled?(feature, context) do
-      {true, _} -> variants(feature, context)
-      _ -> disabled()
-    end
+    {variant, metadata} =
+      case Feature.enabled?(feature, context) do
+        {true, _} -> variants(feature, context)
+        _ -> {disabled(), %{reason: :feature_disabled}}
+      end
+
+    common_metadata = %{
+      seed: get_seed(context),
+      variants: Enum.map(variants, &{&1.name, &1.weight})
+    }
+
+    {variant, Map.merge(metadata, common_metadata)}
   end
 
-  def select_variant(_feature, _context), do: disabled()
+  def select_variant(_feature, _context), do: {disabled(), %{reason: :feature_has_no_variants}}
 
   def from_map(map) when is_map(map) do
     %__MODULE__{
@@ -109,12 +117,16 @@ defmodule Unleash.Variant do
     |> find_override(context)
     |> case do
       nil ->
-        variants
-        |> find_variant(Utils.normalize(get_seed(context), name, total_weight))
+        variant =
+          find_variant(
+            variants,
+            Utils.normalize(get_seed(context), name, total_weight)
+          )
 
-      v ->
-        v
+        {to_map(variant, true), %{reason: :variant_selected}}
+
+      variant ->
+        {to_map(variant, true), %{reason: :override_found}}
     end
-    |> to_map(true)
   end
 end
