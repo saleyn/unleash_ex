@@ -156,3 +156,12 @@ it finishes to push metrics to an Unleash server.
 exceptions on pushing metrics to an Unleash server.
   * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
   * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t(), kind: :throw | :error | :exit, reason: term(), stacktrace: Exception.stacktrace()}`
+* `[:unleash, :repo, :schedule]` - dispatched by `Unleash.Repo` when scheduling a poll to the server for metrics
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), retries: integer(), etag: String.t(), interval: pos_integer()}`
+* `[:unleash, :repo, :backup_file_update]` - dispatched by `Unleash.Repo` when it writes features to the backup file.
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), content: String.t(), filename: String.t()}`
+* `[:unleash, :repo, :disable_polling]` - dispatched by `Unleash.Repo` when polling gets 
+disabled due to retries running out or zero retries being specified initially.
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), retries: integer(), etag: String.t()}`
+* `[:unleash, :repo, :features_update]` - dispatched by `Unleash.Repo` when features are updated.
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), retries: integer(), etag: String.t(), source: :remote | :cache | :backup_file}`

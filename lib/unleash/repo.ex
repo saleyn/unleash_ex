@@ -11,7 +11,6 @@ defmodule Unleash.Repo do
   """
 
   use GenServer
-  require Logger
 
   alias Unleash.Cache
   alias Unleash.Config
@@ -46,25 +45,30 @@ defmodule Unleash.Repo do
   end
 
   def handle_info({:initialize, etag, retries}, state) do
+    telemetry_metadata = Unleash.Client.telemetry_metadata(%{retries: retries, etag: etag})
+
     if retries > 0 or retries <= -1 do
       cached_features = %Features{features: Cache.get_features()}
 
-      {etag, response} =
+      {source, remote_features} =
         case Unleash.Config.client().features(etag) do
-          :cached -> {etag, cached_features}
-          x -> x
-        end
+          :cached ->
+            {:cache, schedule_features(cached_features, etag)}
 
-      remote_features =
-        case response do
           {:error, _} ->
-            cached_features
-            |> read_file_state()
-            |> schedule_features(etag, retries - 1)
+            {source, features} = read_file_state(cached_features)
 
-          f ->
-            schedule_features(f, etag)
+            {source, schedule_features(features, etag, retries - 1)}
+
+          {etag, features} ->
+            {:remote, schedule_features(features, etag)}
         end
+
+      :telemetry.execute(
+        [:unleash, :repo, :features_update],
+        %{},
+        Map.put(telemetry_metadata, :source, source)
+      )
 
       if remote_features === cached_features do
         {:noreply, state}
@@ -74,9 +78,7 @@ defmodule Unleash.Repo do
         {:noreply, state}
       end
     else
-      Logger.debug(fn ->
-        "Retries === 0, disabling polling"
-      end)
+      :telemetry.execute([:unleash, :repo, :disable_polling], telemetry_metadata)
 
       {:noreply, state}
     end
@@ -91,16 +93,17 @@ defmodule Unleash.Repo do
 
   defp read_file_state(%Features{features: []} = cached_features) do
     if File.exists?(Config.backup_file()) do
-      Config.backup_file()
-      |> File.read!()
-      |> Jason.decode!()
-      |> Features.from_map!()
+      {:backup_file,
+       Config.backup_file()
+       |> File.read!()
+       |> Jason.decode!()
+       |> Features.from_map!()}
     else
-      cached_features
+      {:cache, cached_features}
     end
   end
 
-  defp read_file_state(cached_features), do: cached_features
+  defp read_file_state(cached_features), do: {:cache, cached_features}
 
   defp write_file_state(features) do
     :ok = File.mkdir_p(Config.backup_dir())
@@ -110,9 +113,14 @@ defmodule Unleash.Repo do
     Config.backup_file()
     |> File.write!(content)
 
-    Logger.debug(fn ->
-      ["Wrote ", content, " to file ", Config.backup_file()]
-    end)
+    :telemetry.execute(
+      [:unleash, :repo, :backup_file_update],
+      %{},
+      Unleash.Client.telemetry_metadata(%{
+        content: content,
+        filename: Config.backup_file()
+      })
+    )
   end
 
   defp initialize do
@@ -120,18 +128,18 @@ defmodule Unleash.Repo do
   end
 
   defp schedule_features(features, etag, retries \\ Config.retries()) do
-    Logger.debug(fn ->
-      retries_log =
-        if retries >= 0 do
-          ", retries: #{retries}"
-        else
-          ""
-        end
-
-      "etag: #{etag}" <> retries_log
-    end)
+    :telemetry.execute(
+      [:unleash, :repo, :schedule],
+      %{},
+      Unleash.Client.telemetry_metadata(%{
+        retries: retries,
+        etag: etag,
+        interval: Config.features_period()
+      })
+    )
 
     Process.send_after(self(), {:initialize, etag, retries}, Config.features_period())
+
     features
   end
 end
