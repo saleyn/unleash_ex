@@ -147,15 +147,19 @@ exceptions on registering in an Unleash server.
 * `[:unleash, :client, :push_metrics, :start]` - dispatched by `Unleash.Client` whenever
 it starts to push metrics to an Unleash server.
   * Measurement:  `%{system_time: system_time, monotonic_time: monotonic_time}`
-  * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t()}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t(), metrics_payload: %{ :bucket => %{:start => String.t(), :stop => String.t(), toggles: %{
+    String.t() => %{ :yes => pos_integer(), :no => pos_integer() } } } }
+  }`
 * `[:unleash, :client, :push_metrics, :stop]` - dispatched by `Unleash.Client` whenever
 it finishes to push metrics to an Unleash server.
   * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
-  * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t(), http_response_status: pos_integer | nil, error: struct() | nil}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t(), http_response_status: pos_integer | nil, error: struct() | nil, metrics_payload: %{ :bucket => %{:start => String.t(), :stop => String.t(), toggles: %{
+    String.t() => %{ :yes => pos_integer(), :no => pos_integer() } } } } }`
 * `[:unleash, :client, :push_metrics, :exception]` - dispatched by `Unleash.Client` after
 exceptions on pushing metrics to an Unleash server.
   * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
-  * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t(), kind: :throw | :error | :exit, reason: term(), stacktrace: Exception.stacktrace()}`
+  * Metadata: `%{appname: String.t(), instance_id: String.t(), url: String.t(), kind: :throw | :error | :exit, reason: term(), stacktrace: Exception.stacktrace(), metrics_payload: %{ :bucket => %{:start => String.t(), :stop => String.t(), toggles: %{
+    String.t() => %{ :yes => pos_integer(), :no => pos_integer() } } } } }`
 * `[:unleash, :repo, :schedule]` - dispatched by `Unleash.Repo` when scheduling a poll to the server for metrics
   * Metadata: `%{appname: String.t(), instance_id: String.t(), retries: integer(), etag: String.t(), interval: pos_integer()}`
 * `[:unleash, :repo, :backup_file_update]` - dispatched by `Unleash.Repo` when it writes features to the backup file.

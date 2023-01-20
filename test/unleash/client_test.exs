@@ -233,7 +233,18 @@ defmodule Unleash.ClientTest do
 
       attach_telemetry_event([:unleash, :client, :push_metrics, :start])
 
-      assert {:ok, %Mojito.Response{}} = Client.metrics(%{})
+      payload = %{
+        bucket: %{
+          start: "2023-01-19T15:00:15.269493Z",
+          stop: "2023-01-19T15:00:25.270545Z",
+          toggles: %{
+            "example_toggle" => %{yes: 5, no: 0},
+            "example_toggle_2" => %{yes: 55, no: 4}
+          }
+        }
+      }
+
+      assert {:ok, %Mojito.Response{}} = Client.metrics(payload)
 
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
@@ -242,6 +253,7 @@ defmodule Unleash.ClientTest do
       assert metadata[:instance_id] == "node@a"
 
       assert metadata[:url] =~ "client/metrics"
+      assert metadata[:metrics_payload] == payload
 
       assert is_number(measurements[:system_time])
       assert is_number(measurements[:monotonic_time])
