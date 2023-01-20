@@ -89,7 +89,7 @@ defmodule Unleash.Client do
   def metrics(met) do
     url = "#{Config.url()}/client/metrics"
 
-    start_metadata = telemetry_metadata(%{url: url})
+    start_metadata = telemetry_metadata(%{url: url, metrics_payload: met})
 
     :telemetry.span(@telemetry_metrics_prefix, start_metadata, fn ->
       {result, metadata} = send_data(url, met)
