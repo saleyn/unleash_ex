@@ -13,8 +13,6 @@ defmodule Unleash.Strategy do
   ```
   """
 
-  require Logger
-
   alias Unleash.Config
   alias Unleash.Strategy.Constraint
 
@@ -22,8 +20,6 @@ defmodule Unleash.Strategy do
     name = opts[:name]
 
     quote line: true do
-      require Logger
-
       alias unquote(__MODULE__)
 
       @behaviour unquote(__MODULE__)
@@ -32,9 +28,10 @@ defmodule Unleash.Strategy do
 
       @doc false
       def check_enabled(params \\ %{}, context) do
-        params
-        |> enabled?(context)
-        |> Strategy.log_result(@name)
+        case enabled?(params, context) do
+          {result, _used_opts} -> result
+          result -> result
+        end
       end
     end
   end
@@ -77,27 +74,6 @@ defmodule Unleash.Strategy do
   end
 
   def enabled?(_strat, _context), do: false
-
-  @spec log_result({boolean(), map()}, String.t()) :: boolean()
-  def log_result({result, opts}, name) when is_map(opts) do
-    Logger.debug(fn ->
-      opts
-      |> Stream.map(fn {k, v} -> "#{k}: #{v}" end)
-      |> Enum.join(", ")
-      |> (&"#{name} computed #{result} from #{&1}").()
-    end)
-
-    result
-  end
-
-  @spec log_result(boolean(), String.t()) :: boolean()
-  def log_result(result, name) when is_boolean(result) do
-    Logger.debug(fn ->
-      "#{name} computed #{result}"
-    end)
-
-    result
-  end
 
   defp check_constraints(%{"constraints" => constraints}, context),
     do: Constraint.verify_all(constraints, context)

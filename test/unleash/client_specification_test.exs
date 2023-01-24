@@ -41,7 +41,6 @@ defmodule Unleash.ClientSpecificationTest do
         @feature feature
         @expected expected
 
-        @tag capture_log: true
         test t do
           context = entity_from_file(@context)
 

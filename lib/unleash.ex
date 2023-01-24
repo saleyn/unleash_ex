@@ -11,7 +11,6 @@ defmodule Unleash do
   """
 
   use Application
-  require Logger
 
   alias Unleash.Config
   alias Unleash.Feature
@@ -94,10 +93,6 @@ defmodule Unleash do
       fn ->
         {result, metadata} =
           if Config.disable_client() do
-            Logger.warn(fn ->
-              "Client is disabled, it will only return default: #{default}"
-            end)
-
             {default, %{reason: :disabled_client}}
           else
             feature
@@ -161,10 +156,6 @@ defmodule Unleash do
       fn ->
         {result, metadata} =
           if Config.disable_client() do
-            Logger.warn(fn ->
-              "Client is disabled, it will only return the fallback: #{Jason.encode!(fallback)}"
-            end)
-
             {fallback, %{reason: :disabled_client}}
           else
             name

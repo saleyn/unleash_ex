@@ -5,8 +5,6 @@ defmodule Unleash.ClientTest do
 
   alias Unleash.Client
 
-  @moduletag capture_log: true
-
   setup :set_mox_from_context
 
   setup do

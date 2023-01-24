@@ -1,7 +1,6 @@
 defmodule Unleash.Metrics do
   @moduledoc false
   use GenServer
-  require Logger
 
   alias Unleash.Config
   alias Unleash.Feature
@@ -57,18 +56,8 @@ defmodule Unleash.Metrics do
     {:noreply, send_metrics(state)}
   end
 
-  if Version.match?(System.version(), ">= 1.11.0") do
-    def handle_info({:mojito_response, _ref, message}, state) do
-      Logger.warning("Unexpected response from Mojito #{inspect(message, pretty: true)}")
-
-      {:noreply, send_metrics(state)}
-    end
-  else
-    def handle_info({:mojito_response, _ref, message}, state) do
-      Logger.warn("Unexpected response from Mojito #{inspect(message, pretty: true)}")
-
-      {:noreply, send_metrics(state)}
-    end
+  def handle_info({:mojito_response, _ref, _message}, state) do
+    {:noreply, send_metrics(state)}
   end
 
   if Config.test?() do

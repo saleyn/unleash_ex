@@ -5,8 +5,6 @@ defmodule Unleash.Client do
   @callback register_client() :: Mojito.response()
   @callback metrics(map()) :: Mojito.response()
 
-  require Logger
-
   alias Unleash.Config
   alias Unleash.Features
   @appname "UNLEASH-APPNAME"
@@ -24,10 +22,6 @@ defmodule Unleash.Client do
     headers = headers(etag)
     url = "#{Config.url()}/client/features"
 
-    Logger.debug(fn ->
-      "Request sent to features with #{inspect(headers, pretty: true)}"
-    end)
-
     start_metadata = telemetry_metadata(%{etag: etag, url: url})
 
     :telemetry.span(
@@ -35,10 +29,6 @@ defmodule Unleash.Client do
       start_metadata,
       fn ->
         result = Config.http_client().get(url, headers)
-
-        Logger.debug(fn ->
-          "Result from features was #{inspect(result, pretty: true)}"
-        end)
 
         case result do
           {:ok, response} ->
@@ -106,11 +96,7 @@ defmodule Unleash.Client do
       %Mojito.Response{status_code: 200} ->
         pull_out_data(mojito)
 
-      resp = %Mojito.Response{status_code: status} ->
-        Logger.warn(fn ->
-          "Unexpected response #{inspect(resp)}. Using cached features"
-        end)
-
+      %Mojito.Response{status_code: status} ->
         {:cached, %{http_response_status: status}}
     end
   end
@@ -138,23 +124,11 @@ defmodule Unleash.Client do
       |> Jason.encode!()
       |> (&Config.http_client().post(url, headers(), &1)).()
 
-    Logger.debug(fn ->
-      "Request sent to #{url} with #{inspect(data, pretty: true)}"
-    end)
-
     case result do
       {:ok, %Mojito.Response{status_code: status_code} = response} ->
-        Logger.debug(fn ->
-          "Result from #{url} was #{inspect(response, pretty: true)}"
-        end)
-
         {{:ok, response}, %{http_response_status: status_code}}
 
       {:error, e} ->
-        Logger.error(fn ->
-          "Request #{inspect(data, pretty: true)} failed with result #{inspect(e, pretty: true)}"
-        end)
-
         {{:error, e}, %{error: e}}
     end
   end
