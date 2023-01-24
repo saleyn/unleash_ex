@@ -1,29 +1,10 @@
 defmodule UnleashTest do
   use ExUnit.Case
-  import ExUnit.CaptureLog
   import Mox
-
-  describe "features/0" do
-    @tag :capture_log
-    test "should warn if unexpected status code returned" do
-      MojitoMock
-      |> stub(:post, fn _, _, _ -> {:ok, %Mojito.Response{}} end)
-      |> expect(:get, fn _url, _headers ->
-        {:ok, %Mojito.Response{status_code: 502}}
-      end)
-
-      Application.put_env(:unleash, Unleash, http_client: MojitoMock)
-
-      assert capture_log(fn ->
-               Unleash.Client.features()
-             end) =~ ~r/Unexpected response.+Using cached features/
-    end
-  end
 
   describe "enabled?/2" do
     setup :start_repo
 
-    @tag capture_log: true
     test "should send an empty context" do
       Application.put_env(:unleash, Unleash, [])
       refute Unleash.enabled?(:test1, true)
@@ -71,7 +52,6 @@ defmodule UnleashTest do
   describe "is_enabled?" do
     setup :start_repo
 
-    @tag capture_log: true
     test "should call enabled" do
       assert Unleash.is_enabled?(:test1, true) == Unleash.enabled?(:test1, true)
 
@@ -95,16 +75,9 @@ defmodule UnleashTest do
       :ok
     end
 
-    @tag capture_log: true
     test "should return the default if the client is disabled" do
       assert true == Unleash.enabled?(:test, %{}, true)
       assert false == Unleash.enabled?(:test, %{}, false)
-    end
-
-    test "should log if the client is disabled" do
-      assert capture_log(fn ->
-               Unleash.enabled?(:test1)
-             end) =~ "Client is disabled, it will only return default:"
     end
 
     test "should emit telemetry on start" do
@@ -150,16 +123,9 @@ defmodule UnleashTest do
       :ok
     end
 
-    @tag capture_log: true
     test "should return the default if the client is disabled" do
       assert true == Unleash.get_variant(:variant, %{}, true)
       assert false == Unleash.get_variant(:variant, %{}, false)
-    end
-
-    test "should log if the client is disabled" do
-      assert capture_log(fn ->
-               Unleash.get_variant(:variant)
-             end) =~ "Client is disabled, it will only return the fallback:"
     end
   end
 

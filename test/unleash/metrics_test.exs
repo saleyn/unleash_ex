@@ -14,7 +14,6 @@ defmodule Unleash.MetricsTest do
     %{metrics: metrics}
   end
 
-  @tag capture_log: true
   describe "add_metric/2" do
     property "should add the feature to the metrics bucket", %{metrics: metrics} do
       check all enabled <- positive_integer(),
@@ -52,7 +51,6 @@ defmodule Unleash.MetricsTest do
     end
   end
 
-  @tag capture_log: true
   describe "add_variant_metric/2" do
     property "should add the variant to the metrics bucket", %{metrics: metrics} do
       check all v <-
@@ -83,7 +81,6 @@ defmodule Unleash.MetricsTest do
   describe "send_metrics" do
     setup :verify_on_exit!
 
-    @tag capture_log: true
     test "sends the metrics bucket to the client", %{metrics: metrics} do
       Unleash.ClientMock
       |> allow(self(), metrics)
@@ -97,7 +94,6 @@ defmodule Unleash.MetricsTest do
       assert :ok = GenServer.call(metrics, :send_metrics)
     end
 
-    @tag capture_log: true
     property "sends any toggles that have been sent", %{metrics: metrics} do
       check all enabled <- positive_integer(),
                 disabled <- positive_integer(),

@@ -3,7 +3,6 @@ defmodule Unleash.Feature do
 
   alias Unleash.Strategy
   alias Unleash.Variant
-  require Logger
 
   @derive Jason.Encoder
   defstruct name: "",
@@ -29,15 +28,8 @@ defmodule Unleash.Feature do
   def enabled?(%__MODULE__{enabled: enabled, strategies: []}, _context),
     do: {enabled, []}
 
-  def enabled?(%__MODULE__{enabled: enabled, strategies: strat} = feature, context)
+  def enabled?(%__MODULE__{enabled: enabled, strategies: strat}, context)
       when is_list(strat) do
-    Logger.debug(fn ->
-      strat
-      |> Stream.map(&Map.get(&1, "name", ""))
-      |> Enum.join(", ")
-      |> (&"Strategies for feature #{feature.name} are: #{&1}").()
-    end)
-
     strategy_evaluations =
       Enum.map(strat, fn strategy ->
         {strategy["name"], Strategy.enabled?(strategy, context)}
