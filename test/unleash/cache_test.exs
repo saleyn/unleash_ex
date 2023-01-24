@@ -35,8 +35,11 @@ defmodule Unleash.CacheTest do
     } do
       assert :ok == Cache.upsert_features(@new_features ++ @existing_features, table_name)
 
-      assert [@existing_feature.name, @new_feature.name] ==
-               Cache.get_all_feature_names(table_name)
+      features = Cache.get_all_feature_names(table_name)
+
+      assert Enum.count(features) == 2
+      assert @existing_feature.name in features
+      assert @new_feature.name in features
     end
   end
 
