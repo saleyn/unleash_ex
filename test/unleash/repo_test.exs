@@ -84,7 +84,7 @@ defmodule Unleash.RepoTest do
       |> allow(self(), repo_pid)
       |> expect(:features, fn _ -> {"test_etag", get_empty_state()} end)
       |> expect(:features, fn _ ->
-        {:error, "error"}
+        {nil, :some_error}
       end)
 
       attach_telemetry_event(@backup_file_update_event)
