@@ -55,7 +55,7 @@ defmodule Unleash.Repo do
           :cached ->
             {:cache, schedule_features(cached_features, etag)}
 
-          {:error, _} ->
+          {nil, _error} ->
             {source, features} = read_file_state(cached_features)
 
             {source, schedule_features(features, etag, retries - 1)}
