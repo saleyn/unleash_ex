@@ -120,15 +120,15 @@ a feature check has successfully returned a result.
 exceptions on fetching a feature's activation state.
   * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
   * Metadata: `%{appname: String.t(), instance_id: String.t(), feature: String.t(), kind: :throw | :error | :exit, reason: term(), stacktrace: Exception.stacktrace()}`
-* `[:unleash, :client, :features, :start]` - dispatched by `Unleash.Client` whenever
+* `[:unleash, :client, :fetch_features, :start]` - dispatched by `Unleash.Client` whenever
 it start to fetch features from a remote Unleash server.
   * Measurement:  `%{system_time: system_time, monotonic_time: monotonic_time}`
   * Metadata: `%{appname: String.t(), instance_id: String.t(), etag: String.t() | nil, url: String.t()}`
-* `[:unleash, :client, :features, :stop]` - dispatched by `Unleash.Client` whenever
+* `[:unleash, :client, :fetch_features, :stop]` - dispatched by `Unleash.Client` whenever
 it finishes to fetch features from a remote Unleash server.
   * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
   * Metadata: `%{appname: String.t(), instance_id: String.t(), etag: String.t() | nil, url: String.t(), http_response_status: pos_integer | nil, error: struct() | nil}`
-* `[:unleash, :client, :features, :exception]` - dispatched by `Unleash.Client` after
+* `[:unleash, :client, :fetch_features, :exception]` - dispatched by `Unleash.Client` after
 exceptions on fetching features.
   * Measurement:  `%{duration: native_time, monotonic_time: monotonic_time}`
   * Metadata: `%{appname: String.t(), instance_id: String.t(), etag: String.t() | nil, url: String.t(), kind: :throw | :error | :exit, reason: term(), stacktrace: Exception.stacktrace()}`
