@@ -28,7 +28,7 @@ by adding `unleash_ex` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:unleash, "~> 1.0"}
+    {:unleash, "~> 1.9"}
   ]
 end
 ```
@@ -106,7 +106,39 @@ configuration:
 
 ## Telemetry events
 
-The following events are emitted by the Unleash:
+From Unleash 1.9, telemetry events  are emitted by the Unleash client
+library. You can attach to these events and collect metrics or use the `Logger`,
+for example:
+
+```elixir
+# An example of checking if Unleash server is reachable during the periodic
+# features fetch.
+:ok =
+  :telemetry.attach_many(
+    :duffel_core_feature_heatbeat_metric,
+    [
+      [:unleash, :client, :fetch_features, :stop],
+      [:unleash, :client, :fetch_features, :exception]
+    ],
+    fn [:unleash, :client, :fetch_features, action],
+        _measurements,
+        metadata,
+        _config ->
+      require Logger
+
+      http_status = metadata[:http_response_status]
+
+      if action == :stop and http_status in [200, 304] do
+        Logger.info("Fetching features are ok")
+      else
+        Logger.info("Error on fetching features!!!")
+      end
+    end,
+    %{}
+  )
+```
+
+The following events are emitted by the Unleash library:
 
 * `[:unleash, :feature, :enabled?, :start]` - dispatched by `Unleash` whenever
 a feature state has been requested.

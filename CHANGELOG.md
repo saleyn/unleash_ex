@@ -2,6 +2,19 @@
 
 <!-- %% CHANGELOG_ENTRIES %% -->
 
+## 1.9.0 - 2023-01-25
+
+* add: Telemetry events for `Unleash.Client` [!28](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/28)
+* add: Telemetry events for `Unleash.enabled?` [!29](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/29)
+* add: Telemetry events for `Unleash.get_variant` [!30](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/30)
+* add: Telemetry events for `Unleash.Repo` [!31](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/31)
+* add: Telemetry events for metrics pushed to server [!33](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/33)
+* remove: Logger calls [!37](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/36)
+
+Thanks [Jekri Orlina](https://gitlab.com/jekku) and [Sam Hutchings](https://gitlab.com/samhutchings) for telemetry
+adoption.
+
+
 ## 1.8.3 - 2022-05-31
 
 * fix: Avoid crash when mojito connect is closed for the metrics client
