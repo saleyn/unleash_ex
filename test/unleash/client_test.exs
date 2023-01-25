@@ -141,7 +141,7 @@ defmodule Unleash.ClientTest do
 
       assert metadata[:url] =~ "client/register"
 
-      assert metadata[:sdk_version] == "unleash_ex:1.8.3"
+      assert metadata[:sdk_version] =~ "unleash_ex:"
       assert is_list(metadata[:strategies])
       assert metadata[:interval] == 600_000
 
@@ -168,7 +168,7 @@ defmodule Unleash.ClientTest do
       assert metadata[:url] =~ "client/register"
       assert metadata[:http_response_status] == 200
 
-      assert metadata[:sdk_version] == "unleash_ex:1.8.3"
+      assert metadata[:sdk_version] =~ "unleash_ex:"
       assert is_list(metadata[:strategies])
       assert metadata[:interval] == 600_000
 
@@ -209,7 +209,7 @@ defmodule Unleash.ClientTest do
 
       assert metadata[:url] =~ "client/register"
 
-      assert metadata[:sdk_version] == "unleash_ex:1.8.3"
+      assert metadata[:sdk_version] =~ "unleash_ex:"
       assert is_list(metadata[:strategies])
       assert metadata[:interval] == 600_000
 
