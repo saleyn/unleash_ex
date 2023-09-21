@@ -13,12 +13,17 @@ false
 iex> Unleash.enabled?(:my_feature, true)
 true
 
+iex> context = %{user_id: "ID", custom_field: "Unleash"}
+
 iex> Unleash.enabled?(:my_feature, context)
 true
 
 iex> Unleash.enabled?(:my_feature, context, false)
 true
 ```
+
+Context fields are transformed internally when validated against constraints,
+e.g. `:user_id` becomes `"userId"`.
 
 ## Installation
 
@@ -196,7 +201,7 @@ exceptions on pushing metrics to an Unleash server.
   * Metadata: `%{appname: String.t(), instance_id: String.t(), retries: integer(), etag: String.t(), interval: pos_integer()}`
 * `[:unleash, :repo, :backup_file_update]` - dispatched by `Unleash.Repo` when it writes features to the backup file.
   * Metadata: `%{appname: String.t(), instance_id: String.t(), content: String.t(), filename: String.t()}`
-* `[:unleash, :repo, :disable_polling]` - dispatched by `Unleash.Repo` when polling gets 
+* `[:unleash, :repo, :disable_polling]` - dispatched by `Unleash.Repo` when polling gets
 disabled due to retries running out or zero retries being specified initially.
   * Metadata: `%{appname: String.t(), instance_id: String.t(), retries: integer(), etag: String.t()}`
 * `[:unleash, :repo, :features_update]` - dispatched by `Unleash.Repo` when features are updated.
