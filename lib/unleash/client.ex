@@ -9,6 +9,7 @@ defmodule Unleash.Client do
   alias Unleash.Features
   @appname "UNLEASH-APPNAME"
   @instance_id "UNLEASH-INSTANCEID"
+  @authorization "Authorization"
   @if_none_match "If-None-Match"
   @sdk_version "unleash_ex:#{Mix.Project.config()[:version]}"
   @accept {"Accept", "application/json"}
@@ -138,15 +139,17 @@ defmodule Unleash.Client do
   defp headers(etag),
     do: headers() ++ [{@if_none_match, etag}]
 
-  defp headers,
-    do:
-      Config.custom_headers() ++
-        [
-          {@appname, Config.appname()},
-          {@instance_id, Config.instance_id()},
-          @accept,
-          @content_type
-        ]
+  defp headers do
+    cust_headers = Config.custom_headers()
+    token        = Config.auth_token()
+    (token && [{@authorization, token} | cust_headers] || cust_headers) ++
+      [
+        {@appname, Config.appname()},
+        {@instance_id, Config.instance_id()},
+        @accept,
+        @content_type
+      ]
+  end
 
   defp tag_data(data) do
     data

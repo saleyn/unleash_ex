@@ -5,6 +5,7 @@ defmodule Unleash.Config do
     url: "",
     appname: "",
     instance_id: "",
+    auth_token: nil,
     metrics_period: 10 * 60 * 1000,
     features_period: 15 * 1000,
     strategies: Unleash.Strategies,
@@ -36,6 +37,11 @@ defmodule Unleash.Config do
   def instance_id do
     application_env()
     |> Keyword.fetch!(:instance_id)
+  end
+
+  def auth_token do
+    application_env()
+    |> Keyword.get(:auth_token)
   end
 
   def metrics_period do
