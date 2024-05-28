@@ -1,7 +1,7 @@
 defmodule Unleash.Config do
   @moduledoc false
 
-  @defaults [
+  @defaults %{
     url: "",
     appname: "",
     instance_id: "",
@@ -15,108 +15,70 @@ defmodule Unleash.Config do
     disable_metrics: false,
     retries: -1,
     client: Unleash.Client,
-    http_client: Mojito,
+    http_client: Unleash.Http.SimpleHttp,
+    http_opts: %{},
     app_env: :test
-  ]
+  }
 
-  def url do
-    application_env()
-    |> Keyword.fetch!(:url)
-  end
+  @app Application.get_application(__MODULE__)
 
-  def test? do
-    application_env()
-    |> Keyword.fetch!(:app_env) == :test
-  end
+  @http_client Application.compile_env(@app, :http_client, @defaults[:http_client])
+  @app_name    Application.compile_env(@app, :appname,     @defaults[:appname])
+  @instance_id Application.compile_env(@app, :instance_id, @defaults[:instance_id])
 
-  def appname do
-    application_env()
-    |> Keyword.fetch!(:appname)
-  end
+  @telemetry_metadata %{appname: @app_name, instance_id: @instance_id}
 
-  def instance_id do
-    application_env()
-    |> Keyword.fetch!(:instance_id)
-  end
+  def url, do: application_env(:url)
 
-  def auth_token do
-    application_env()
-    |> Keyword.get(:auth_token)
-  end
+  def test?, do: application_env(:app_env) == :test
 
-  def metrics_period do
-    application_env()
-    |> Keyword.fetch!(:metrics_period)
-  end
+  def appname, do: application_env(:appname)
 
-  def features_period do
-    application_env()
-    |> Keyword.fetch!(:features_period)
-  end
+  def instance_id, do: application_env(:instance_id)
 
-  def strategies do
-    strategy_module =
-      application_env()
-      |> Keyword.fetch!(:strategies)
+  def auth_token, do: application_env(:auth_token)
 
-    strategy_module.strategies
-  end
+  def metrics_period, do: application_env(:metrics_period)
 
-  def strategy_names do
-    strategies()
-    |> Enum.map(fn {n, _} -> n end)
-  end
+  def features_period, do: application_env(:features_period)
+
+  def strategies, do: application_env(:strategies).strategies
+
+  def strategy_names, do: (for {n, _} <- strategies(), do: n)
 
   def backup_file do
-    application_env()
-    |> Keyword.fetch!(:backup_file)
+    application_env(:backup_file)
     |> case do
       nil -> Path.join([System.tmp_dir!(), appname(), "repo.json"])
       f -> f
     end
   end
 
-  def backup_dir do
-    backup_file()
-    |> Path.dirname()
-  end
+  def backup_dir, do: backup_file() |> Path.dirname()
 
-  def custom_headers do
-    application_env()
-    |> Keyword.fetch!(:custom_http_headers)
-  end
+  def custom_headers, do: application_env(:custom_http_headers)
 
-  def disable_client do
-    application_env()
-    |> Keyword.fetch!(:disable_client)
-  end
+  def disable_client, do: application_env(:disable_client)
 
-  def disable_metrics do
-    application_env()
-    |> Keyword.fetch!(:disable_metrics)
-  end
+  def disable_metrics, do: application_env(:disable_metrics)
 
-  def retries do
-    application_env()
-    |> Keyword.fetch!(:retries)
-  end
+  def retries, do: application_env(:retries)
 
-  def client do
-    application_env()
-    |> Keyword.fetch!(:client)
-  end
+  def client, do: application_env(:client)
 
-  def http_client do
-    application_env()
-    |> Keyword.fetch!(:http_client)
-  end
+  def http_opts, do: application_env(:http_opts)
 
-  defp application_env do
-    config =
-      __MODULE__
-      |> Application.get_application()
-      |> Application.get_env(Unleash, [])
+  def http_client, do: @http_client
 
-    Keyword.merge(@defaults, config)
+  def telemetry_metadata, do: @telemetry_metadata
+
+  defp application_env(opt) do
+    __MODULE__
+    |> Application.get_application()
+    |> Application.get_env(opt)
+    |> case do
+      nil -> Map.get(@defaults, opt)
+      val -> val
+    end
   end
 end

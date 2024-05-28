@@ -1,9 +1,9 @@
 defmodule Unleash.Client do
   @moduledoc false
 
-  @callback features(String.t()) :: Mojito.response()
-  @callback register_client() :: Mojito.response()
-  @callback metrics(map()) :: Mojito.response()
+  @callback features(String.t()) :: {:ok, map()} | :cached
+  @callback register_client() :: {:ok, map()} | :cached
+  @callback metrics(map()) :: {:ok, map()} | :cached
 
   alias Unleash.Config
   alias Unleash.Features
@@ -13,11 +13,10 @@ defmodule Unleash.Client do
   @if_none_match "If-None-Match"
   @sdk_version "unleash_ex:#{Mix.Project.config()[:version]}"
   @accept {"Accept", "application/json"}
-  @content_type {"Content-Type", "application/json"}
 
   @telemetry_features_prefix [:unleash, :client, :fetch_features]
   @telemetry_register_prefix [:unleash, :client, :register]
-  @telemetry_metrics_prefix [:unleash, :client, :push_metrics]
+  @telemetry_metrics_prefix  [:unleash, :client, :push_metrics]
 
   def features(etag \\ nil) do
     headers = headers(etag)
@@ -29,16 +28,8 @@ defmodule Unleash.Client do
       @telemetry_features_prefix,
       start_metadata,
       fn ->
-        result = Config.http_client().get(url, headers)
-
-        case result do
-          {:ok, response} ->
-            {result, metadata} = handle_feature_response(response)
-            {result, Map.merge(start_metadata, metadata)}
-
-          {:error, error} ->
-            {{nil, error}, Map.put(start_metadata, :error, error)}
-        end
+        Config.http_client().get(url, headers)
+        |> handle_feature_response(start_metadata)
       end
     )
   end
@@ -71,8 +62,15 @@ defmodule Unleash.Client do
       @telemetry_register_prefix,
       start_metadata,
       fn ->
-        {result, metadata} = send_data(url, client)
-        {result, Map.merge(start_metadata, metadata)}
+        {result, metadata} = send_data(url, client, start_metadata)
+        case Config.http_client().status_code!(result) do
+          200 ->
+            {{:ok,
+                result
+                |> Config.http_client().response_body!()
+                |> Jason.decode!()}, metadata}
+          _   -> {{:error, Config.http_client().response_body!(result)}, metadata}
+        end
       end
     )
   end
@@ -83,55 +81,48 @@ defmodule Unleash.Client do
     start_metadata = telemetry_metadata(%{url: url, metrics_payload: met})
 
     :telemetry.span(@telemetry_metrics_prefix, start_metadata, fn ->
-      {result, metadata} = send_data(url, met)
+      {result, metadata} = send_data(url, met, start_metadata)
 
       {result, Map.merge(start_metadata, metadata)}
     end)
   end
 
-  defp handle_feature_response(mojito) do
-    case mojito do
-      %Mojito.Response{status_code: 304} ->
-        {:cached, %{http_response_status: 304}}
+  defp handle_feature_response(response, meta) do
+    case Config.http_client().status_code!(response) do
+      304 ->
+        {:cached, Map.put(meta, :http_response_status, 304)}
+      200 ->
+        features =
+          response
+          |> Config.http_client().response_body!()
+          |> Jason.decode!()
+          |> Features.from_map!()
 
-      %Mojito.Response{status_code: 200} ->
-        pull_out_data(mojito)
+        etag =
+          response
+          |> Config.http_client().response_headers!()
+          |> Map.new()
+          |> Map.get("etag", :ok)
 
-      %Mojito.Response{status_code: status} ->
-        {:cached, %{http_response_status: status}}
+        {{:ok, %{etag: etag, features: features}},
+          Map.merge(meta, %{http_response_status: 200, etag: etag})}
+      I when I >= 400 ->
+        {{:error, Config.http_client().response_body!(response)},
+          Map.put(meta, :http_response_status, I)}
+      status ->
+        {{:ok, :cached}, Map.put(meta, :http_response_status, status)}
     end
   end
 
-  defp pull_out_data(mojito) do
-    features =
-      mojito
-      |> Map.get(:body, "")
-      |> Jason.decode!()
-      |> Features.from_map!()
-
-    etag =
-      mojito
-      |> Map.get(:headers, [])
-      |> Map.new()
-      |> Map.get("etag", nil)
-
-    {{etag, features}, %{http_response_status: 200, etag: etag}}
-  end
-
-  defp send_data(url, data) do
+  defp send_data(url, data, meta) do
     result =
       data
       |> tag_data()
       |> Jason.encode!()
-      |> (&Config.http_client().post(url, headers(), &1)).()
+      |> then(&Config.http_client().post(url, headers(), &1))
 
-    case result do
-      {:ok, %Mojito.Response{status_code: status_code} = response} ->
-        {{:ok, response}, %{http_response_status: status_code}}
-
-      {:error, e} ->
-        {{:error, e}, %{error: e}}
-    end
+    code = Config.http_client().status_code!(result)
+    {result, Map.put(meta, :http_response_status, code)}
   end
 
   defp headers(nil), do: headers()
@@ -146,21 +137,20 @@ defmodule Unleash.Client do
       [
         {@appname, Config.appname()},
         {@instance_id, Config.instance_id()},
-        @accept,
-        @content_type
+        @accept
       ]
   end
 
   defp tag_data(data) do
     data
-    |> Map.put(:appName, Config.appname())
-    |> Map.put(:instanceId, Config.instance_id())
+    |> maybe_add(:appName, Config.appname())
+    |> maybe_add(:instanceId, Config.instance_id())
   end
 
+  defp maybe_add(data, _key, v) when is_nil(v) or v == "", do: data
+  defp maybe_add(data, key,  v), do: Map.put(data, key, v)
+
   def telemetry_metadata(metadata \\ %{}) do
-    Map.merge(
-      %{appname: Config.appname(), instance_id: Config.instance_id()},
-      metadata
-    )
+    Config.telemetry_metadata() |> Map.merge(metadata)
   end
 end

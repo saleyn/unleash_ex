@@ -184,8 +184,11 @@ defmodule Unleash do
       |> Enum.filter(fn {_m, not_enabled} -> not not_enabled end)
       |> Enum.map(fn {module, _e} -> module end)
 
-    unless children == [] do
-      Config.client().register_client()
+    if children != [] do
+      case Config.client().register_client() do
+        {:ok, _} -> :ok
+        {:error, reason} -> RuntimeError.exception("Failed to register unleash client: #{reason}")
+      end
     end
 
     Supervisor.start_link(children, strategy: :one_for_one)
