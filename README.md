@@ -3,6 +3,8 @@
 `Unleash` is a client for the
 [Unleash Toggle Service](https://unleash.github.io/).
 
+NOTE: this is a github clone of https://gitlab.com/afontaine/unleash_ex
+
 The primary use is `Unleash.enabled?/2` or `Unleash.enabled?/3` to check whether
 or not the given feature flag is enabled.
 
