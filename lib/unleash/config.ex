@@ -3,8 +3,8 @@ defmodule Unleash.Config do
 
   @defaults %{
     url: "",
-    appname: "",
-    instance_id: "",
+    appname: "unleash_ex",
+    instance_id: Atom.to_string(node()),
     auth_token: nil,
     metrics_period: 10 * 60 * 1000,
     features_period: 15 * 1000,
