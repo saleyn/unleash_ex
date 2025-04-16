@@ -7,14 +7,16 @@ config :unleash,
   http_client: Unleash.Http.SimpleHttp,
   http_opts: %{
     ssl: [verify: :verify_none],
-    #ssl: [verify: :verify_peer, cacerts: :public_key.cacerts_get()],
+    # ssl: [verify: :verify_peer, cacerts: :public_key.cacerts_get()],
     headers_format: :binary,
     headers: [
       "Content-Type": "application/json"
     ],
-    debug: true
+    debug: false
   },
-  url: "http://localhost:4242/api/",
-  auth_token: "default:development.64395949309cba8e3e6e16ba053e723a313de78bd9e4a251746e3eb8",
+  url: System.get_env("UNLEASH_URL") || raise(RuntimeError, message: "Missing UNLEASH_URL!"),
+  auth_token:
+    System.get_env("UNLEASH_AUTH_TOKEN") ||
+      raise(RuntimeError, message: "Missing UNLEASH_AUTH_TOKEN!"),
   metrics_period: 15 * 1000,
   app_env: :dev

@@ -11,6 +11,7 @@ defmodule Unleash.Http.SimpleHttp do
   def post(url, headers, body \\ "") do
     opts = Config.http_opts()
     {opt_headers, opts} = Map.pop(opts, :headers)
+
     headers =
       opt_headers
       |> SimpleHttp.List.merge(headers)
@@ -18,6 +19,7 @@ defmodule Unleash.Http.SimpleHttp do
         list when body == "" -> list
         list -> [{"Content-Type", "application/json"} | list]
       end
+
     SimpleHttp.post(url, [{:headers, headers}, {:body, body} | Map.to_list(opts)])
   end
 
