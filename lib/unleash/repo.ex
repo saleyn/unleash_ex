@@ -50,7 +50,7 @@ defmodule Unleash.Repo do
     if retries > 0 or retries <= -1 do
       cached_features = %Features{features: Cache.get_features()}
 
-      {source, remote_features} =
+      {source, %{features: remote_features}} =
         case Unleash.Config.client().features(etag) do
           :cached ->
             {:cache, schedule_features(cached_features, etag)}

@@ -3,8 +3,8 @@ defmodule Unleash.Config do
 
   @defaults %{
     url: "",
-    appname: "",
-    instance_id: "",
+    appname: "unleash_ex",
+    instance_id: Atom.to_string(node()),
     auth_token: nil,
     metrics_period: 10 * 60 * 1000,
     features_period: 15 * 1000,
@@ -23,7 +23,7 @@ defmodule Unleash.Config do
   @app Application.get_application(__MODULE__)
 
   @http_client Application.compile_env(@app, :http_client, @defaults[:http_client])
-  @app_name    Application.compile_env(@app, :appname,     @defaults[:appname])
+  @app_name Application.compile_env(@app, :appname, @defaults[:appname])
   @instance_id Application.compile_env(@app, :instance_id, @defaults[:instance_id])
 
   @telemetry_metadata %{appname: @app_name, instance_id: @instance_id}
@@ -44,7 +44,7 @@ defmodule Unleash.Config do
 
   def strategies, do: application_env(:strategies).strategies
 
-  def strategy_names, do: (for {n, _} <- strategies(), do: n)
+  def strategy_names, do: for({n, _} <- strategies(), do: n)
 
   def backup_file do
     application_env(:backup_file)

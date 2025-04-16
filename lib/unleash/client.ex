@@ -63,13 +63,16 @@ defmodule Unleash.Client do
       start_metadata,
       fn ->
         {result, metadata} = send_data(url, client, start_metadata)
+
         case Config.http_client().status_code!(result) do
           200 ->
             {{:ok,
-                result
-                |> Config.http_client().response_body!()
-                |> Jason.decode!()}, metadata}
-          _   -> {{:error, Config.http_client().response_body!(result)}, metadata}
+              result
+              |> Config.http_client().response_body!()
+              |> Jason.decode!()}, metadata}
+
+          _ ->
+            {{:error, Config.http_client().response_body!(result)}, metadata}
         end
       end
     )
@@ -91,6 +94,7 @@ defmodule Unleash.Client do
     case Config.http_client().status_code!(response) do
       304 ->
         {:cached, Map.put(meta, :http_response_status, 304)}
+
       200 ->
         features =
           response
@@ -106,9 +110,11 @@ defmodule Unleash.Client do
 
         {{:ok, %{etag: etag, features: features}},
           Map.merge(meta, %{http_response_status: 200, etag: etag})}
+
       I when I >= 400 ->
         {{:error, Config.http_client().response_body!(response)},
           Map.put(meta, :http_response_status, I)}
+
       status ->
         {{:ok, :cached}, Map.put(meta, :http_response_status, status)}
     end
@@ -127,13 +133,17 @@ defmodule Unleash.Client do
 
   defp headers(nil), do: headers()
 
+  defp headers(etag) when is_atom(etag),
+    do: headers(Atom.to_string(etag))
+
   defp headers(etag),
     do: headers() ++ [{@if_none_match, etag}]
 
   defp headers do
     cust_headers = Config.custom_headers()
-    token        = Config.auth_token()
-    (token && [{@authorization, token} | cust_headers] || cust_headers) ++
+    token = Config.auth_token()
+
+    ((token && [{@authorization, token} | cust_headers]) || cust_headers) ++
       [
         {@appname, Config.appname()},
         {@instance_id, Config.instance_id()},
@@ -148,7 +158,7 @@ defmodule Unleash.Client do
   end
 
   defp maybe_add(data, _key, v) when is_nil(v) or v == "", do: data
-  defp maybe_add(data, key,  v), do: Map.put(data, key, v)
+  defp maybe_add(data, key, v), do: Map.put(data, key, v)
 
   def telemetry_metadata(metadata \\ %{}) do
     Config.telemetry_metadata() |> Map.merge(metadata)
