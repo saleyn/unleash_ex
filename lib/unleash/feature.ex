@@ -12,12 +12,15 @@ defmodule Unleash.Feature do
             variants: %{}
 
   def from_map(map) when is_map(map) do
+    strategies = map["strategies"]
+
     %__MODULE__{
       name: map["name"],
       description: map["description"],
       enabled: map["enabled"],
-      strategies: map["strategies"],
-      variants: Enum.map(map["variants"] || [], &Variant.from_map/1)
+      strategies: strategies,
+      variants:
+        Enum.flat_map(strategies, fn m -> Enum.map(m["variants"] || [], &Variant.from_map/1) end)
     }
   end
 
