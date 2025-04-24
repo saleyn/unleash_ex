@@ -1,6 +1,7 @@
 defmodule Unleash.Variant do
   @moduledoc false
   alias Unleash.Feature
+  alias Unleash.Strategy
   alias Unleash.Strategy.Utils
 
   @sticky_props [:user_id, :session_id, :remote_address]
@@ -18,11 +19,13 @@ defmodule Unleash.Variant do
           optional(:payload) => map()
         }
 
-  def select_variant(%Feature{variants: variants} = feature, context)
-      when is_list(variants) and length(variants) > 0 do
+  def select_variant(
+        %Feature{variants: variants, strategies: strategies, name: name} = feature,
+        context
+      ) do
     {variant, metadata} =
       case Feature.enabled?(feature, context) do
-        {true, _} -> variants(feature, context)
+        {true, _} -> variants(variants(strategies, context) ++ variants, name, context)
         _ -> {disabled(), %{reason: :feature_disabled}}
       end
 
@@ -33,8 +36,6 @@ defmodule Unleash.Variant do
 
     {variant, Map.merge(metadata, common_metadata)}
   end
-
-  def select_variant(_feature, _context), do: {disabled(), %{reason: :feature_has_no_variants}}
 
   def from_map(map) when is_map(map) do
     %__MODULE__{
@@ -106,7 +107,7 @@ defmodule Unleash.Variant do
     }
   end
 
-  defp variants(%Feature{variants: variants, name: name}, context)
+  defp variants(variants, name, context)
        when is_list(variants) and length(variants) > 0 do
     total_weight =
       variants
@@ -127,6 +128,18 @@ defmodule Unleash.Variant do
 
       variant ->
         {to_map(variant, true), %{reason: :override_found}}
+    end
+  end
+
+  defp variants(_variants, _name, _context), do: {disabled(), %{reason: :feature_has_no_variants}}
+
+  defp variants([], _context), do: []
+
+  defp variants([strategy | tail], context) do
+    case Strategy.enabled?(strategy, context) do
+      true -> Map.get(strategy, "variants", []) ++ variants(tail, context)
+      {true, _} -> Map.get(strategy, "variants", []) ++ variants(tail, context)
+      _ -> variants(tail, context)
     end
   end
 end

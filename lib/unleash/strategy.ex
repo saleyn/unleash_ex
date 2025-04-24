@@ -15,6 +15,16 @@ defmodule Unleash.Strategy do
 
   alias Unleash.Config
   alias Unleash.Strategy.Constraint
+  alias Unleash.Variant
+
+  def update_map(map) when is_map(map) do
+    {_, new_map} =
+      Map.get_and_update!(map, "variants", fn variants ->
+        {variants, Enum.map(variants || [], &Variant.from_map/1)}
+      end)
+
+    new_map
+  end
 
   defmacro __using__(opts) do
     name = opts[:name]
