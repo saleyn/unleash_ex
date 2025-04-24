@@ -6,21 +6,24 @@ defmodule Unleash.Feature do
 
   @derive Jason.Encoder
   defstruct name: "",
+            type: "",
+            project: "",
             description: "",
             enabled: false,
+            stale: false,
             strategies: [],
-            variants: %{}
+            variants: []
 
   def from_map(map) when is_map(map) do
-    strategies = map["strategies"]
-
     %__MODULE__{
       name: map["name"],
+      type: map["type"],
+      project: map["project"],
       description: map["description"],
       enabled: map["enabled"],
-      strategies: strategies,
-      variants:
-        Enum.flat_map(strategies, fn m -> Enum.map(m["variants"] || [], &Variant.from_map/1) end)
+      stale: map["stale"],
+      strategies: Enum.map(map["strategies"] || [], &Strategy.update_map/1),
+      variants: Enum.map(map["variants"] || [], &Variant.from_map/1)
     }
   end
 
