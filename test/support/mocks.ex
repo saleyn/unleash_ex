@@ -1,2 +1,2 @@
 Mox.defmock(Unleash.ClientMock, for: Unleash.Client)
-Mox.defmock(MojitoMock, for: Mojito.Behavior)
+Mox.defmock(SimpleHttpMock, for: Unleash.Http.SimpleHttp.Behavior)

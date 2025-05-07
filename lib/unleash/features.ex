@@ -4,7 +4,7 @@ defmodule Unleash.Features do
   alias Unleash.Feature
 
   @derive Jason.Encoder
-  defstruct version: "1", features: []
+  defstruct version: "2", features: []
 
   def from_map!(%{"version" => version, "features" => features}) do
     %__MODULE__{

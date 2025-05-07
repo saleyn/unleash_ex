@@ -4,74 +4,72 @@ defmodule Unleash.ClientTest do
   import Mox
 
   alias Unleash.Client
+  alias Unleash.Config
 
   setup :set_mox_from_context
 
   setup do
-    default_config = Application.get_env(:unleash, Unleash, [])
+    http_client = Application.get_env(:unleas, :http_client)
 
-    test_config =
-      Keyword.merge(default_config,
-        http_client: MojitoMock,
-        appname: "myapp",
-        instance_id: "node@a"
-      )
+    Application.put_env(:unleash, :http_client, SimpleHttpMock)
 
-    Application.put_env(:unleash, Unleash, test_config)
-
-    on_exit(fn -> Application.put_env(:unleash, Unleash, default_config) end)
+    on_exit(fn ->
+      Application.put_env(:unleash, :http_client, http_client)
+    end)
 
     :ok
   end
 
   describe "features/1" do
     test "publishes start event" do
-      MojitoMock
+      SimpleHttpMock
       |> expect(:get, fn _url, _headers ->
         {:ok,
-         %Mojito.Response{
-           body: ~S({"version": "1", "features":[]}),
+         %SimpleHttp.Response{
+           body: ~S({"version": "2", "features":[]}),
            headers: [{"etag", "x"}],
-           status_code: 200
+           status: 200
          }}
       end)
+      |> expect(:status_code!, fn _ -> 200 end)
+      |> expect(:response_body!, fn _ -> ~S({"version": "2", "features":[]}) end)
+      |> expect(:response_headers!, fn _ -> [{"etag", "x"}] end)
 
       attach_telemetry_event([:unleash, :client, :fetch_features, :start])
 
-      assert {"x", %Unleash.Features{}} = Client.features()
-
+      assert {:ok, %{etag: "x", features: %Unleash.Features{}}} = Client.features()
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
-
-      assert metadata[:appname] == "myapp"
-      assert metadata[:instance_id] == "node@a"
       assert metadata[:etag] == nil
       assert metadata[:url] =~ "client/features"
+      assert metadata[:appname] == Config.appname()
+      assert metadata[:instance_id] == Config.instance_id()
 
       assert is_number(measurements[:system_time])
       assert is_number(measurements[:monotonic_time])
     end
 
     test "publishes stop event" do
-      MojitoMock
+      SimpleHttpMock
       |> expect(:get, fn _url, _headers ->
         {:ok,
-         %Mojito.Response{
+         %SimpleHttp.Response{
            body: ~S({"version": "1", "features":[]}),
            headers: [{"etag", "x"}],
-           status_code: 200
+           status: 200
          }}
       end)
+      |> expect(:status_code!, fn _ -> 200 end)
+      |> expect(:response_body!, fn _ -> ~S({"version": "2", "features":[]}) end)
+      |> expect(:response_headers!, fn _ -> [{"etag", "x"}] end)
 
       attach_telemetry_event([:unleash, :client, :fetch_features, :stop])
 
-      assert {"x", %Unleash.Features{}} = Client.features()
+      assert {:ok, %{etag: "x", features: %Unleash.Features{}}} = Client.features()
 
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
 
-      assert metadata[:appname] == "myapp"
-      assert metadata[:instance_id] == "node@a"
       assert metadata[:etag] == "x"
       assert metadata[:url] =~ "client/features"
       assert metadata[:http_response_status] == 200
@@ -81,22 +79,21 @@ defmodule Unleash.ClientTest do
     end
 
     test "publishes stop event with an error" do
-      MojitoMock
+      SimpleHttpMock
       |> expect(:get, fn _url, _headers ->
-        {:error, %Mojito.Error{message: "Network unavailable"}}
+        {:error, %SimpleHttp.Response{}}
       end)
+      |> expect(:status_code!, fn _ -> 404 end)
+      |> expect(:response_body!, fn _ -> ~S({"version": "2", "features":[]}) end)
+      |> expect(:response_headers!, fn _ -> [{"etag", "x"}] end)
 
       attach_telemetry_event([:unleash, :client, :fetch_features, :stop])
-
-      assert {nil, %Mojito.Error{}} = Client.features()
-
+      assert {:error, "{\"version\": \"2\", \"features\":[]}"} = Client.features()
       assert_received {:telemetry_metadata, metadata}
-
-      assert %Mojito.Error{} = metadata[:error]
     end
 
     test "publishes exception event" do
-      MojitoMock
+      SimpleHttpMock
       |> expect(:get, fn _url, _headers ->
         raise "Unexpected error"
       end)
@@ -108,8 +105,6 @@ defmodule Unleash.ClientTest do
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
 
-      assert metadata[:appname] == "myapp"
-      assert metadata[:instance_id] == "node@a"
       assert metadata[:etag] == nil
       assert metadata[:url] =~ "client/features"
 
@@ -124,23 +119,23 @@ defmodule Unleash.ClientTest do
 
   describe "register_client/0" do
     test "publishes start event" do
-      MojitoMock
+      SimpleHttpMock
       |> expect(:post, fn _url, _body, _headers ->
-        {:ok, %Mojito.Response{status_code: 200}}
+        {:ok, %SimpleHttp.Response{status: 200}}
       end)
+      |> expect(:status_code!, fn _ -> 200 end)
+      |> expect(:status_code!, fn _ -> 200 end)
+      |> expect(:response_body!, fn _ -> ~S({"version": "2", "features":[]}) end)
+      |> expect(:response_headers!, fn _ -> [{"etag", "x"}] end)
 
       attach_telemetry_event([:unleash, :client, :register, :start])
 
-      assert {:ok, %Mojito.Response{}} = Client.register_client()
+      assert {:ok, %{"features" => [], "version" => "2"}} = Client.register_client()
 
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
 
-      assert metadata[:appname] == "myapp"
-      assert metadata[:instance_id] == "node@a"
-
       assert metadata[:url] =~ "client/register"
-
       assert metadata[:sdk_version] =~ "unleash_ex:"
       assert is_list(metadata[:strategies])
       assert metadata[:interval] == 600_000
@@ -150,20 +145,20 @@ defmodule Unleash.ClientTest do
     end
 
     test "publishes stop event with measurements" do
-      MojitoMock
+      SimpleHttpMock
       |> expect(:post, fn _url, _body, _headers ->
-        {:ok, %Mojito.Response{status_code: 200}}
+        {:ok, %SimpleHttp.Response{status: 200}}
       end)
+      |> expect(:status_code!, fn _ -> 200 end)
+      |> expect(:status_code!, fn _ -> 200 end)
+      |> expect(:response_body!, fn _ -> ~S({"version": "2", "features":[]}) end)
 
       attach_telemetry_event([:unleash, :client, :register, :stop])
 
-      assert {:ok, %Mojito.Response{}} = Client.register_client()
+      assert {:ok, %{"features" => [], "version" => "2"}} = Client.register_client()
 
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
-
-      assert metadata[:appname] == "myapp"
-      assert metadata[:instance_id] == "node@a"
 
       assert metadata[:url] =~ "client/register"
       assert metadata[:http_response_status] == 200
@@ -177,22 +172,24 @@ defmodule Unleash.ClientTest do
     end
 
     test "publishes stop with an error event" do
-      MojitoMock
+      SimpleHttpMock
       |> expect(:post, fn _url, _body, _headers ->
-        {:error, %Mojito.Error{message: "Network unavailable"}}
+        {:error, %SimpleHttp.Response{status: 503}}
       end)
+      |> expect(:status_code!, fn _ -> 503 end)
+      |> expect(:status_code!, fn _ -> 503 end)
+      |> expect(:response_body!, fn _ -> ~S() end)
 
       attach_telemetry_event([:unleash, :client, :register, :stop])
 
-      assert {:error, %Mojito.Error{}} = Client.register_client()
+      assert {:error, ""} = Client.register_client()
 
       assert_received {:telemetry_metadata, metadata}
-
-      assert %Mojito.Error{} = metadata[:error]
+      assert 503 = metadata[:http_response_status]
     end
 
     test "publishes exception event with measurements" do
-      MojitoMock
+      SimpleHttpMock
       |> expect(:post, fn _url, _body, _headers ->
         raise "Unexpected error"
       end)
@@ -203,9 +200,6 @@ defmodule Unleash.ClientTest do
 
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
-
-      assert metadata[:appname] == "myapp"
-      assert metadata[:instance_id] == "node@a"
 
       assert metadata[:url] =~ "client/register"
 
@@ -224,10 +218,11 @@ defmodule Unleash.ClientTest do
 
   describe "metrics/1" do
     test "publishes start event" do
-      MojitoMock
+      SimpleHttpMock
       |> expect(:post, fn _url, _body, _headers ->
-        {:ok, %Mojito.Response{status_code: 200}}
+        {:ok, %SimpleHttp.Response{status: 200}}
       end)
+      |> expect(:status_code!, fn _ -> 200 end)
 
       attach_telemetry_event([:unleash, :client, :push_metrics, :start])
 
@@ -242,13 +237,10 @@ defmodule Unleash.ClientTest do
         }
       }
 
-      assert {:ok, %Mojito.Response{}} = Client.metrics(payload)
+      assert {:ok, %SimpleHttp.Response{}} = Client.metrics(payload)
 
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
-
-      assert metadata[:appname] == "myapp"
-      assert metadata[:instance_id] == "node@a"
 
       assert metadata[:url] =~ "client/metrics"
       assert metadata[:metrics_payload] == payload
@@ -258,20 +250,18 @@ defmodule Unleash.ClientTest do
     end
 
     test "publishes stop event with measurements" do
-      MojitoMock
+      SimpleHttpMock
       |> expect(:post, fn _url, _body, _headers ->
-        {:ok, %Mojito.Response{status_code: 200}}
+        {:ok, %SimpleHttp.Response{status: 200}}
       end)
+      |> expect(:status_code!, fn _ -> 200 end)
 
       attach_telemetry_event([:unleash, :client, :push_metrics, :stop])
 
-      assert {:ok, %Mojito.Response{}} = Client.metrics(%{})
+      assert {:ok, %SimpleHttp.Response{}} = Client.metrics(%{})
 
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
-
-      assert metadata[:appname] == "myapp"
-      assert metadata[:instance_id] == "node@a"
 
       assert metadata[:url] =~ "client/metrics"
       assert metadata[:http_response_status] == 200
@@ -281,22 +271,22 @@ defmodule Unleash.ClientTest do
     end
 
     test "publishes stop with an error event" do
-      MojitoMock
+      SimpleHttpMock
       |> expect(:post, fn _url, _body, _headers ->
-        {:error, %Mojito.Error{message: "Network unavailable"}}
+        {:error, %SimpleHttp.Response{status: 503}}
       end)
+      |> expect(:status_code!, fn _ -> 503 end)
 
       attach_telemetry_event([:unleash, :client, :push_metrics, :stop])
 
-      assert {:error, %Mojito.Error{}} = Client.metrics(%{})
+      assert {:error, %SimpleHttp.Response{status: 503}} = Client.metrics(%{})
 
       assert_received {:telemetry_metadata, metadata}
-
-      assert %Mojito.Error{} = metadata[:error]
+      assert metadata[:http_response_status] == 503
     end
 
     test "publishes exception event with measurements" do
-      MojitoMock
+      SimpleHttpMock
       |> expect(:post, fn _url, _body, _headers ->
         raise "Unexpected error"
       end)
@@ -307,9 +297,6 @@ defmodule Unleash.ClientTest do
 
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
-
-      assert metadata[:appname] == "myapp"
-      assert metadata[:instance_id] == "node@a"
 
       assert metadata[:url] =~ "client/metrics"
 

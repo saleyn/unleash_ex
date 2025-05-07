@@ -39,9 +39,9 @@ defmodule Unleash.Variant do
 
   def from_map(map) when is_map(map) do
     %__MODULE__{
-      name: map["name"],
-      weight: map["weight"],
-      payload: map["payload"],
+      name: Map.get(map, "name", ""),
+      weight: Map.get(map, "weight", 0),
+      payload: Map.get(map, "payload", %{}),
       overrides: Map.get(map, "overrides", [])
     }
   end
