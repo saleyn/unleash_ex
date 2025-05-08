@@ -10,20 +10,18 @@ defmodule Unleash.Feature do
             project: "",
             description: "",
             enabled: false,
-            stale: false,
             strategies: [],
             variants: []
 
   def from_map(map) when is_map(map) do
     %__MODULE__{
-      name: map["name"],
-      type: map["type"],
-      project: map["project"],
-      description: map["description"],
-      enabled: map["enabled"],
-      stale: map["stale"],
-      strategies: Enum.map(map["strategies"] || [], &Strategy.update_map/1),
-      variants: Enum.map(map["variants"] || [], &Variant.from_map/1)
+      name: Map.get(map, "name", ""),
+      type: Map.get(map, "type", ""),
+      project: Map.get(map, "project", ""),
+      description: Map.get(map, "description", ""),
+      enabled: Map.get(map, "enabled", false),
+      strategies: Enum.map(Map.get(map, "strategies", []) || [], &Strategy.update_map/1),
+      variants: Enum.map(Map.get(map, "variants", []) || [], &Variant.from_map/1)
     }
   end
 

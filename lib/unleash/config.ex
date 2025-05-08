@@ -32,9 +32,9 @@ defmodule Unleash.Config do
 
   def test?, do: application_env(:app_env) == :test
 
-  def appname, do: application_env(:appname)
+  def appname, do: @app_name
 
-  def instance_id, do: application_env(:instance_id)
+  def instance_id, do: @instance_id
 
   def auth_token, do: application_env(:auth_token)
 
@@ -42,7 +42,7 @@ defmodule Unleash.Config do
 
   def features_period, do: application_env(:features_period)
 
-  def strategies, do: application_env(:strategies).strategies
+  def strategies, do: application_env(:strategies).strategies()
 
   def strategy_names, do: for({n, _} <- strategies(), do: n)
 
@@ -68,7 +68,11 @@ defmodule Unleash.Config do
 
   def http_opts, do: application_env(:http_opts)
 
-  def http_client, do: @http_client
+  if Mix.env() in [:test] do
+    def http_client, do: application_env(:http_client)
+  else
+    def http_client, do: @http_client
+  end
 
   def telemetry_metadata, do: @telemetry_metadata
 

@@ -50,8 +50,8 @@ defmodule Unleash.Repo do
     if retries > 0 or retries <= -1 do
       cached_features = %Features{features: Cache.get_features()}
 
-      {source, %{features: remote_features}} =
-        case Unleash.Config.client().features(etag) do
+      {source, remote_features} =
+        case Unleash.Config.client().features(etag) |> client_adaptor do
           :cached ->
             {:cache, schedule_features(cached_features, etag)}
 
@@ -90,6 +90,11 @@ defmodule Unleash.Repo do
   def handle_info({:mojito_response, _ref, _message}, state) do
     {:noreply, state}
   end
+
+  defp client_adaptor(:cached), do: :cached
+  defp client_adaptor({:error, error}), do: {nil, error}
+  defp client_adaptor({:ok, :cached}), do: :cached
+  defp client_adaptor({:ok, map}), do: {map[:etag], map[:features]}
 
   defp read_file_state(%Features{features: []} = cached_features) do
     if File.exists?(Config.backup_file()) do

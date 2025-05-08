@@ -6,12 +6,12 @@ defmodule UnleashTest do
     setup :start_repo
 
     test "should send an empty context" do
-      Application.put_env(:unleash, Unleash, [])
+      Application.delete_env(:unleash, :disable_client)
       refute Unleash.enabled?(:test1, true)
     end
 
     test "should emit evaluation series on stop when applicable" do
-      Application.put_env(:unleash, Unleash, [])
+      Application.delete_env(:unleash, :disable_client)
 
       attach_telemetry_event([:unleash, :feature, :enabled?, :stop])
 
@@ -31,7 +31,7 @@ defmodule UnleashTest do
     end
 
     test "should emit reason for non existent feature" do
-      Application.put_env(:unleash, Unleash, [])
+      Application.delete_env(:unleash, :disable_client)
 
       attach_telemetry_event([:unleash, :feature, :enabled?, :stop])
 
@@ -66,10 +66,11 @@ defmodule UnleashTest do
   describe "enabled?/3" do
     setup do
       stop_supervised(Unleash.Repo)
-      Application.put_env(:unleash, Unleash, disable_client: true)
+      saved = Application.get_env(:unleash, :disable_client)
+      Application.put_env(:unleash, :disable_client, true)
 
       on_exit(fn ->
-        Application.put_env(:unleash, Unleash, disable_client: false)
+        Application.put_env(:unleash, :disable_client, saved)
       end)
 
       :ok
@@ -114,10 +115,11 @@ defmodule UnleashTest do
   describe "get_variant/3" do
     setup do
       stop_supervised(Unleash.Repo)
-      Application.put_env(:unleash, Unleash, disable_client: true)
+      saved = Application.get_env(:unleash, :disable_client)
+      Application.put_env(:unleash, :disable_client, true)
 
       on_exit(fn ->
-        Application.put_env(:unleash, Unleash, disable_client: false)
+        Application.put_env(:unleash, :disable_client, saved)
       end)
 
       :ok
@@ -132,13 +134,14 @@ defmodule UnleashTest do
   describe "start/1" do
     test "it should listen to configuration when starting the supervisor tree" do
       Unleash.ClientMock
-      |> expect(:register_client, fn -> %Mojito.Response{} end)
-      |> stub(:features, fn _ -> %Mojito.Response{} end)
-      |> stub(:metrics, fn _ -> %Mojito.Response{} end)
+      |> expect(:register_client, fn -> {:ok, %{}} end)
+      |> stub(:features, fn _ -> {:ok, %{etag: "test_etag", features: %Unleash.Features{}}} end)
+      |> stub(:metrics, fn _ -> {:ok, %SimpleHttp.Response{}} end)
 
-      Application.put_env(:unleash, Unleash, client: Unleash.ClientMock)
+      Application.put_env(:unleash, :client, Unleash.ClientMock)
+      Application.put_env(:unleash, :disable_metrics, false)
+      Application.put_env(:unleash, :disable_client, false)
       {:ok, pid} = Unleash.start(:normal, [])
-
       children = Supervisor.which_children(pid)
 
       assert Enum.any?(children, &Kernel.match?({Unleash.Repo, _, _, _}, &1))
@@ -147,10 +150,11 @@ defmodule UnleashTest do
 
     test "it shouldn't start the metrics server if disabled" do
       Unleash.ClientMock
-      |> expect(:register_client, fn -> %Mojito.Response{} end)
-      |> stub(:features, fn _ -> %Mojito.Response{} end)
+      |> expect(:register_client, fn -> {:ok, %{}} end)
+      |> stub(:features, fn _ -> {:ok, %{etag: "test_etag", features: %Unleash.Features{}}} end)
 
-      Application.put_env(:unleash, Unleash, disable_metrics: true, client: Unleash.ClientMock)
+      Application.put_env(:unleash, :client, Unleash.ClientMock)
+      Application.put_env(:unleash, :disable_metrics, true)
       {:ok, pid} = Unleash.start(:normal, [])
 
       children = Supervisor.which_children(pid)
@@ -160,7 +164,8 @@ defmodule UnleashTest do
     end
 
     test "it shouldn't start anything if the client is disabled" do
-      Application.put_env(:unleash, Unleash, disable_client: true, client: Unleash.ClientMock)
+      Application.put_env(:unleash, :client, Unleash.ClientMock)
+      Application.put_env(:unleash, :disable_client, true)
       {:ok, pid} = Unleash.start(:normal, [])
 
       children = Supervisor.which_children(pid)
@@ -196,7 +201,7 @@ defmodule UnleashTest do
 
   defp state,
     do: %{
-      "version" => 1,
+      "version" => 2,
       "features" => [
         %{
           "name" => "test1",

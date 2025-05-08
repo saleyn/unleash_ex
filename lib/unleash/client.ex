@@ -111,9 +111,9 @@ defmodule Unleash.Client do
         {{:ok, %{etag: etag, features: features}},
           Map.merge(meta, %{http_response_status: 200, etag: etag})}
 
-      I when I >= 400 ->
+      i when i >= 400 ->
         {{:error, Config.http_client().response_body!(response)},
-          Map.put(meta, :http_response_status, I)}
+         Map.put(meta, :http_response_status, i)}
 
       status ->
         {{:ok, :cached}, Map.put(meta, :http_response_status, status)}

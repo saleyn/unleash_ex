@@ -21,9 +21,9 @@ defmodule Unleash.MetricsTest do
                 feature <- string(:alphanumeric, min_length: 1) do
         Unleash.ClientMock
         |> allow(self(), metrics)
-        |> stub(:metrics, fn _ -> %Mojito.Response{} end)
+        |> stub(:metrics, fn _ -> %SimpleHttp.Response{} end)
 
-        Application.put_env(:unleash, Unleash, client: Unleash.ClientMock)
+        Application.put_env(:unleash, :client, Unleash.ClientMock)
 
         for _ <- 1..enabled do
           Unleash.Metrics.add_metric({%Feature{name: feature}, true}, metrics)
@@ -59,9 +59,9 @@ defmodule Unleash.MetricsTest do
                 variants = Enum.zip(v, n) do
         Unleash.ClientMock
         |> allow(self(), metrics)
-        |> stub(:metrics, fn _ -> %Mojito.Response{} end)
+        |> stub(:metrics, fn _ -> %SimpleHttp.Response{} end)
 
-        Application.put_env(:unleash, Unleash, client: Unleash.ClientMock)
+        Application.put_env(:unleash, :client, Unleash.ClientMock)
 
         for {v, n} <- variants do
           for _ <- 1..n do
@@ -89,7 +89,7 @@ defmodule Unleash.MetricsTest do
         %Mojito.Response{}
       end)
 
-      Application.put_env(:unleash, Unleash, client: Unleash.ClientMock)
+      Application.put_env(:unleash, :client, Unleash.ClientMock)
 
       assert :ok = GenServer.call(metrics, :send_metrics)
     end
@@ -103,10 +103,10 @@ defmodule Unleash.MetricsTest do
         |> expect(:metrics, fn %{bucket: %{toggles: toggles} = _bucket} ->
           f = Map.get(toggles, feature)
           assert ^f = %{yes: enabled, no: disabled}
-          %Mojito.Response{}
+          %SimpleHttp.Response{}
         end)
 
-        Application.put_env(:unleash, Unleash, client: Unleash.ClientMock)
+        Application.put_env(:unleash, :client, Unleash.ClientMock)
 
         for _ <- 1..enabled do
           Unleash.Metrics.add_metric({%Feature{name: feature}, true}, metrics)
