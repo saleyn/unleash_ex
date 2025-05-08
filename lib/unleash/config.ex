@@ -22,7 +22,7 @@ defmodule Unleash.Config do
 
   @app Application.get_application(__MODULE__)
 
-  # @http_client Application.compile_env(@app, :http_client, @defaults[:http_client])
+  @http_client Application.compile_env(@app, :http_client, @defaults[:http_client])
   @app_name Application.compile_env(@app, :appname, @defaults[:appname])
   @instance_id Application.compile_env(@app, :instance_id, @defaults[:instance_id])
 
@@ -32,10 +32,8 @@ defmodule Unleash.Config do
 
   def test?, do: application_env(:app_env) == :test
 
-  # def appname, do: application_env(:appname)
   def appname, do: @app_name
 
-  # def instance_id, do: application_env(:instance_id)
   def instance_id, do: @instance_id
 
   def auth_token, do: application_env(:auth_token)
@@ -70,8 +68,11 @@ defmodule Unleash.Config do
 
   def http_opts, do: application_env(:http_opts)
 
-  # def http_client, do: @http_client
-  def http_client, do: application_env(:http_client)
+  if Mix.env() in [:test] do
+    def http_client, do: application_env(:http_client)
+  else
+    def http_client, do: @http_client
+  end
 
   def telemetry_metadata, do: @telemetry_metadata
 
