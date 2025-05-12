@@ -3,14 +3,14 @@ defmodule Unleash.Http.SimpleHttp do
 
   def get(url, headers) do
     opts = Config.http_opts()
-    {opt_headers, opts} = Map.pop(opts, :headers)
+    {opt_headers, opts} = Map.pop(opts, :headers, [])
     headers = SimpleHttp.List.merge(opt_headers, headers)
     SimpleHttp.get(url, [{:headers, headers} | Map.to_list(opts)])
   end
 
   def post(url, headers, body \\ "") do
     opts = Config.http_opts()
-    {opt_headers, opts} = Map.pop(opts, :headers)
+    {opt_headers, opts} = Map.pop(opts, :headers, [])
 
     headers =
       opt_headers
