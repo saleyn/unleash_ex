@@ -175,7 +175,7 @@ defmodule Unleash do
   end
 
   @doc false
-  def start(_type, _args) do
+  def start_link(_type, _args) do
     children =
       [
         {Repo, Config.disable_client()},
