@@ -5,7 +5,7 @@ defmodule Unleash.Config do
     url: "",
     appname: "unleash_ex",
     instance_id: Atom.to_string(node()),
-    auth_token: nil,
+    auth_token: System.get_env("UNLEASH_CLIENT_KEY"),
     metrics_period: 10 * 60 * 1000,
     features_period: 15 * 1000,
     strategies: Unleash.Strategies,
