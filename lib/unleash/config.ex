@@ -16,7 +16,14 @@ defmodule Unleash.Config do
     retries: -1,
     client: Unleash.Client,
     http_client: Unleash.Http.SimpleHttp,
-    http_opts: %{},
+    http_opts: %{
+        ssl: [verify: :verify_none],
+        headers_format: :binary,
+        headers: [
+          "Content-Type": "application/json"
+        ],
+        debug: true
+      },
     app_env: :test
   }
 
