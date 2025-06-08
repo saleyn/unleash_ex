@@ -5,7 +5,7 @@ defmodule Unleash.Config do
     url: "",
     appname: "unleash_ex",
     instance_id: Atom.to_string(node()),
-    auth_token: fn() -> System.get_env("UNLEASH_CLIENT_KEY") end,
+    auth_token: {:env_var, "UNLEASH_CLIENT_KEY"},
     metrics_period: 10 * 60 * 1000,
     features_period: 15 * 1000,
     strategies: Unleash.Strategies,
@@ -89,8 +89,13 @@ defmodule Unleash.Config do
     |> Application.get_env(opt)
     |> case do
       nil -> Map.get(@defaults, opt)
-      val when is_function(val) -> val.()
       val -> val
     end
+    |> maybe_get_env_var()
   end
+
+  defp maybe_get_env_var({:env_var, env_var}) do
+    System.get_env(env_var)
+  end
+  defp maybe_get_env_var(val),  do: val
 end
