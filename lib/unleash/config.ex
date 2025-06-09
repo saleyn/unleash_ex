@@ -5,7 +5,7 @@ defmodule Unleash.Config do
     url: "",
     appname: "unleash_ex",
     instance_id: Atom.to_string(node()),
-    auth_token: nil,
+    auth_token: {:env_var, "UNLEASH_CLIENT_KEY"},
     metrics_period: 10 * 60 * 1000,
     features_period: 15 * 1000,
     strategies: Unleash.Strategies,
@@ -16,7 +16,14 @@ defmodule Unleash.Config do
     retries: -1,
     client: Unleash.Client,
     http_client: Unleash.Http.SimpleHttp,
-    http_opts: %{},
+    http_opts: %{
+        ssl: [verify: :verify_none],
+        headers_format: :binary,
+        headers: [
+          "Content-Type": "application/json"
+        ],
+        debug: true
+      },
     app_env: :test
   }
 
@@ -84,5 +91,11 @@ defmodule Unleash.Config do
       nil -> Map.get(@defaults, opt)
       val -> val
     end
+    |> maybe_get_env_var()
   end
+
+  defp maybe_get_env_var({:env_var, env_var}) do
+    System.get_env(env_var)
+  end
+  defp maybe_get_env_var(val),  do: val
 end
