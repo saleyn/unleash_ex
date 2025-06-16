@@ -22,7 +22,7 @@ defmodule Unleash.Config do
       headers: [
         "Content-Type": "application/json"
       ],
-      debug: true
+      debug: false
     },
     app_env: :test
   }
