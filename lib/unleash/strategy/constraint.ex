@@ -24,6 +24,8 @@ defmodule Unleash.Strategy.Constraint do
 
   defp verify(%{}, _context), do: false
 
+  defp check(nil, _, _), do: false
+
   defp check(value, "IN", %{"values" => values}), do: value in values
   defp check(value, "NOT_IN", %{"values" => values}), do: value not in values
 
@@ -82,8 +84,6 @@ defmodule Unleash.Strategy.Constraint do
 
   defp check(semver, "SEMVER_GT", %{"value" => value}), do: cmp_semver(semver, value, &Kernel.>/2)
   defp check(semver, "SEMVER_LT", %{"value" => value}), do: cmp_semver(semver, value, &Kernel.</2)
-
-  defp check(nil, _, _), do: false
 
   defp find_value(nil, _name), do: nil
 
