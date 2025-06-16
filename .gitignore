@@ -26,3 +26,4 @@ unleash-*.tar
 .direnv/
 /RELEASE.md
 .vscode/
+.DS_Store
