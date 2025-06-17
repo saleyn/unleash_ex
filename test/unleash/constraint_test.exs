@@ -169,6 +169,289 @@ defmodule Unleash.Strategy.ConstraintTest do
                  %{app_name: "unleash", current_time: "2025-05-15T12:10:00.000Z"}
                )
     end
+
+    test "STR_CONTAINS positive test" do
+      assert true ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "string_value",
+                     "operator" => "STR_CONTAINS",
+                     "values" => ["unleash", "elixir"]
+                   })
+                 ],
+                 %{string_value: "unleash feature toggle"}
+               )
+    end
+
+    test "STR_CONTAINS negative test" do
+      assert false ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "string_value",
+                     "operator" => "STR_CONTAINS",
+                     "values" => ["unleash", "elixir"]
+                   })
+                 ],
+                 %{string_value: "unlash feature toggle"}
+               )
+    end
+
+    test "STR_CONTAINS negative test inverted" do
+      assert true ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "string_value",
+                     "operator" => "STR_CONTAINS",
+                     "values" => ["unleash", "elixir"],
+                     "inverted" => true
+                   })
+                 ],
+                 %{string_value: "unlash feature toggle"}
+               )
+    end
+
+    test "STR_ENDS_WITH positive test" do
+      assert true ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "string_value",
+                     "operator" => "STR_ENDS_WITH",
+                     "values" => ["@unreal.com", "@user.com"]
+                   })
+                 ],
+                 %{string_value: "anyone@user.com"}
+               )
+    end
+
+    test "STR_ENDS_WITH negative test" do
+      assert false ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "string_value",
+                     "operator" => "STR_ENDS_WITH",
+                     "values" => ["@unreal.com", "@user.com"]
+                   })
+                 ],
+                 %{string_value: "anyone@gmail.com"}
+               )
+    end
+
+    test "STR_ENDS_WITH positive test inverted" do
+      assert false ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "string_value",
+                     "operator" => "STR_ENDS_WITH",
+                     "values" => ["@unreal.com", "@user.com"],
+                     "inverted" => true
+                   })
+                 ],
+                 %{string_value: "anyone@user.com"}
+               )
+    end
+
+    test "STR_STARTS_WITH positive test" do
+      assert true ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "string_value",
+                     "operator" => "STR_STARTS_WITH",
+                     "values" => ["anyone", "someone"]
+                   })
+                 ],
+                 %{string_value: "anyone@user.com"}
+               )
+    end
+
+    test "STR_STARTS_WITH positive test inverted" do
+      assert false ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "string_value",
+                     "operator" => "STR_STARTS_WITH",
+                     "values" => ["anyone", "someone"],
+                     "inverted" => true
+                   })
+                 ],
+                 %{string_value: "anyone@user.com"}
+               )
+    end
+
+    test "STR_STARTS_WITH negative test" do
+      assert false ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "string_value",
+                     "operator" => "STR_STARTS_WITH",
+                     "values" => ["anyone", "someone"]
+                   })
+                 ],
+                 %{string_value: "wild anyone@user.com"}
+               )
+    end
+
+    test "NUM_EQ negative test" do
+      assert false ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "userId",
+                     "operator" => "NUM_EQ",
+                     "value" => "123"
+                   })
+                 ],
+                 %{user_id: "120"}
+               )
+    end
+  end
+
+  describe "SEMVER_* constraints" do
+    test "SEMVER_EQ positive test" do
+      assert true ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "semVer",
+                     "operator" => "SEMVER_EQ",
+                     "value" => "1.2.3"
+                   })
+                 ],
+                 %{sem_ver: "1.2.3-pre.2+build.4"}
+               )
+    end
+
+    test "SEMVER_EQ negative test" do
+      assert false ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "semVer",
+                     "operator" => "SEMVER_EQ",
+                     "value" => "1.3.3"
+                   })
+                 ],
+                 %{sem_ver: "1.2.3-pre.2+build.4"}
+               )
+    end
+
+    test "SEMVER_GT negative test" do
+      assert false ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "semVer",
+                     "operator" => "SEMVER_GT",
+                     "value" => "1.2.3"
+                   })
+                 ],
+                 %{sem_ver: "1.2.3-pre.2+build.4"}
+               )
+    end
+
+    test "SEMVER_LT negative test" do
+      assert false ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "semVer",
+                     "operator" => "SEMVER_LT",
+                     "value" => "1.2.3"
+                   })
+                 ],
+                 %{sem_ver: "1.2.3-pre.2+build.4"}
+               )
+    end
+
+    test "SEMVER_GT positive test" do
+      assert true ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "semVer",
+                     "operator" => "SEMVER_GT",
+                     "value" => "1.2.3"
+                   })
+                 ],
+                 %{sem_ver: "1.2.33-pre.2+build.4"}
+               )
+    end
+
+    test "SEMVER_LT positive test" do
+      assert true ==
+               Constraint.verify_all(
+                 [
+                   mk_constraint(%{
+                     "contextName" => "semVer",
+                     "operator" => "SEMVER_LT",
+                     "value" => "1.3.3"
+                   })
+                 ],
+                 %{sem_ver: "1.2.3-pre.2+build.4"}
+               )
+    end
+  end
+
+  describe "Help functions tests" do
+    test "to_number converts to integer" do
+      assert 123 == Constraint.to_number("123")
+    end
+
+    test "to_number converts to float" do
+      assert 123.45 == Constraint.to_number("123.45")
+    end
+
+    test "to_number converts to float when zero " do
+      assert 123.0 == Constraint.to_number("123.0")
+    end
+
+    test "to_number converts to float in incorrect case" do
+      assert 123.0 == Constraint.to_number("123.o")
+    end
+
+    test "to_number fails to convert" do
+      assert :error == Constraint.to_number("Q123.45")
+    end
+
+    test "mk_semver string argument" do
+      assert {1, 2, 3} == Constraint.mk_semver("1.2.3-pre.2+build.4")
+    end
+
+    test "mk_semver tuple argument" do
+      assert {1, 2, 3} == Constraint.mk_semver({1, 2, 3, 4, 5, 6, 7})
+    end
+
+    test "mk_semver short tuple argument" do
+      assert {1, 2, 0} == Constraint.mk_semver({1, 2})
+    end
+
+    test "cmp_semver equal" do
+      assert true == Constraint.cmp_semver("1.2.3", "1.2.3-pre.2+build.4", &Kernel.==/2)
+    end
+
+    test "cmp_semver equal negative" do
+      assert false == Constraint.cmp_semver("1.2.3", "1.2.33-pre.2+build.4", &Kernel.==/2)
+    end
+
+    test "cmp_semver greater" do
+      assert true == Constraint.cmp_semver("1.3.3", "1.2.3-pre.2+build.4", &Kernel.>/2)
+    end
+
+    test "cmp_semver less" do
+      assert false == Constraint.cmp_semver("1.3.3", "1.2.33-pre.2+build.4", &Kernel.</2)
+    end
+
+    test "cmp_semver equal with tuple" do
+      assert true == Constraint.cmp_semver([1, 2, 3], "1.2.3-pre.2+build.4", &Kernel.==/2)
+    end
   end
 
   defp mk_constraint(), do: mk_constraint(%{})

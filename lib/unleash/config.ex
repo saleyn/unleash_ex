@@ -17,13 +17,13 @@ defmodule Unleash.Config do
     client: Unleash.Client,
     http_client: Unleash.Http.SimpleHttp,
     http_opts: %{
-        ssl: [verify: :verify_none],
-        headers_format: :binary,
-        headers: [
-          "Content-Type": "application/json"
-        ],
-        debug: true
-      },
+      ssl: [verify: :verify_none],
+      headers_format: :binary,
+      headers: [
+        "Content-Type": "application/json"
+      ],
+      debug: false
+    },
     app_env: :test
   }
 
@@ -97,5 +97,6 @@ defmodule Unleash.Config do
   defp maybe_get_env_var({:env_var, env_var}) do
     System.get_env(env_var)
   end
-  defp maybe_get_env_var(val),  do: val
+
+  defp maybe_get_env_var(val), do: val
 end

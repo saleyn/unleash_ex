@@ -25,3 +25,5 @@ unleash-*.tar
 .elixir_ls/
 .direnv/
 /RELEASE.md
+.vscode/
+.DS_Store
