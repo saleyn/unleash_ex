@@ -153,7 +153,7 @@ defmodule Unleash.Strategy.Utils do
         <<v1::size(8), v2::size(8), v3::size(8), v4::size(8), v5::size(8), v6::size(8),
           v7::size(8), v8::size(8)>>
       ) do
-    v8 <<< 56
+    (v8 <<< 56)
     |> bxor(v7 <<< 48)
     |> bxor(v6 <<< 40)
     |> bxor(v5 <<< 32)
@@ -167,7 +167,7 @@ defmodule Unleash.Strategy.Utils do
         <<v1::size(8), v2::size(8), v3::size(8), v4::size(8), v5::size(8), v6::size(8),
           v7::size(8)>>
       ) do
-    v7 <<< 48
+    (v7 <<< 48)
     |> bxor(v6 <<< 40)
     |> bxor(v5 <<< 32)
     |> bxor(v4 <<< 24)
@@ -177,7 +177,7 @@ defmodule Unleash.Strategy.Utils do
   end
 
   def swap_uint(<<v1::size(8), v2::size(8), v3::size(8), v4::size(8), v5::size(8), v6::size(8)>>) do
-    v6 <<< 40
+    (v6 <<< 40)
     |> bxor(v5 <<< 32)
     |> bxor(v4 <<< 24)
     |> bxor(v3 <<< 16)
@@ -186,7 +186,7 @@ defmodule Unleash.Strategy.Utils do
   end
 
   def swap_uint(<<v1::size(8), v2::size(8), v3::size(8), v4::size(8), v5::size(8)>>) do
-    v5 <<< 32
+    (v5 <<< 32)
     |> bxor(v4 <<< 24)
     |> bxor(v3 <<< 16)
     |> bxor(v2 <<< 8)
@@ -194,20 +194,20 @@ defmodule Unleash.Strategy.Utils do
   end
 
   def swap_uint(<<v1::size(8), v2::size(8), v3::size(8), v4::size(8)>>) do
-    v4 <<< 24
+    (v4 <<< 24)
     |> bxor(v3 <<< 16)
     |> bxor(v2 <<< 8)
     |> bxor(v1)
   end
 
   def swap_uint(<<v1::size(8), v2::size(8), v3::size(8)>>) do
-    v3 <<< 16
+    (v3 <<< 16)
     |> bxor(v2 <<< 8)
     |> bxor(v1)
   end
 
   def swap_uint(<<v1::size(8), v2::size(8)>>) do
-    v2 <<< 8 |> bxor(v1)
+    (v2 <<< 8) |> bxor(v1)
   end
 
   def swap_uint(<<v1::size(8)>>), do: 0 |> bxor(v1)
