@@ -45,37 +45,37 @@ defmodule Unleash.Strategy.Constraint do
     do: str |> String.ends_with?(values)
 
   defp check(numb, "NUM_EQ", %{"value" => value}) do
-    case to_number(numb) do
+    case to_numbers(numb, value) do
       :error -> false
-      n -> n == value
+      {n, m} -> n == m
     end
   end
 
   defp check(numb, "NUM_GT", %{"value" => value}) do
-    case to_number(numb) do
+    case to_numbers(numb, value) do
       :error -> false
-      n -> n > value
+      {n, m} -> n > m
     end
   end
 
   defp check(numb, "NUM_GTE", %{"value" => value}) do
-    case to_number(numb) do
+    case to_numbers(numb, value) do
       :error -> false
-      n -> n >= value
+      {n, m} -> n >= m
     end
   end
 
   defp check(numb, "NUM_LE", %{"value" => value}) do
-    case to_number(numb) do
+    case to_numbers(numb, value) do
       :error -> false
-      n -> n < value
+      {n, m} -> n < m
     end
   end
 
   defp check(numb, "NUM_LTE", %{"value" => value}) do
-    case to_number(numb) do
+    case to_numbers(numb, value) do
       :error -> false
-      n -> n <= value
+      {n, m} -> n <= m
     end
   end
 
@@ -110,6 +110,19 @@ defmodule Unleash.Strategy.Constraint do
 
   defp day_cpm({:ok, date1, _}, {:ok, date2, _}), do: date1 |> DateTime.compare(date2)
   defp day_cpm(_, _), do: :error
+
+  def to_numbers(a, b) do
+    case to_number(a) do
+      :error ->
+        :error
+
+      n ->
+        case to_number(b) do
+          :error -> :error
+          m -> {n, m}
+        end
+    end
+  end
 
   def to_number(str) when is_binary(str) do
     case Integer.parse(str, 10) do

@@ -421,6 +421,14 @@ defmodule Unleash.Strategy.ConstraintTest do
       assert :error == Constraint.to_number("Q123.45")
     end
 
+    test "two to_number converts to float in incorrect case" do
+      assert {123.0, 17} == Constraint.to_numbers("123.o", 17)
+    end
+    test "two to_number incorrect case" do
+      assert :error == Constraint.to_numbers("x123.o", 17)
+    end
+
+
     test "mk_semver string argument" do
       assert {1, 2, 3} == Constraint.mk_semver("1.2.3-pre.2+build.4")
     end
