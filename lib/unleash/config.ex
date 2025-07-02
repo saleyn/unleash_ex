@@ -30,18 +30,14 @@ defmodule Unleash.Config do
   @app Application.get_application(__MODULE__)
 
   @http_client Application.compile_env(@app, :http_client, @defaults[:http_client])
-  @app_name Application.compile_env(@app, :appname, @defaults[:appname])
-  @instance_id Application.compile_env(@app, :instance_id, @defaults[:instance_id])
-
-  @telemetry_metadata %{appname: @app_name, instance_id: @instance_id}
 
   def url, do: application_env(:url)
 
   def test?, do: application_env(:app_env) == :test
 
-  def appname, do: @app_name
+  def appname, do: application_env(:appname)
 
-  def instance_id, do: @instance_id
+  def instance_id, do: Atom.to_string(node())
 
   def auth_token, do: application_env(:auth_token)
 
@@ -81,7 +77,7 @@ defmodule Unleash.Config do
     def http_client, do: @http_client
   end
 
-  def telemetry_metadata, do: @telemetry_metadata
+  def telemetry_metadata, do: %{appname: appname(), instance_id: instance_id()}
 
   defp application_env(opt) do
     __MODULE__
