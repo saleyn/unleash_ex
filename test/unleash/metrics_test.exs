@@ -35,6 +35,7 @@ defmodule Unleash.MetricsTest do
 
         %{toggles: toggles} = :sys.get_state(metrics)
         f = Map.get(toggles, feature)
+        dbg(f)
         assert ^f = %{yes: enabled, no: disabled}
 
         Process.send(metrics, :send_metrics, [])
