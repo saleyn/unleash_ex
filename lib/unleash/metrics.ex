@@ -23,6 +23,12 @@ defmodule Unleash.Metrics do
     variant
   end
 
+  if Config.test?() do
+    def get_metrics(pid \\ Unleash.Metrics) do
+      GenServer.call(pid, :get_metrics)
+    end
+  end
+
   def init(_) do
     {:ok, init_state()}
   end
@@ -56,13 +62,13 @@ defmodule Unleash.Metrics do
     {:noreply, send_metrics(state)}
   end
 
-  def handle_info({:mojito_response, _ref, _message}, state) do
-    {:noreply, send_metrics(state)}
-  end
-
   if Config.test?() do
     def handle_call(:send_metrics, _from, state) do
       {:reply, :ok, send_metrics(state)}
+    end
+
+    def handle_call(:get_metrics, _from, state) do
+      {:reply, {:ok, to_bucket(state)}, state}
     end
   end
 

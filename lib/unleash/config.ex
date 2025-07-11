@@ -27,9 +27,11 @@ defmodule Unleash.Config do
     app_env: :test
   }
 
-  @app Application.get_application(__MODULE__)
 
-  @http_client Application.compile_env(@app, :http_client, @defaults[:http_client])
+  if Mix.env() not in [:test] do
+    @app Application.get_application(__MODULE__)
+    @http_client Application.compile_env(@app, :http_client, @defaults[:http_client])
+  end
 
   def url, do: application_env(:url)
 

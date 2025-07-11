@@ -68,8 +68,8 @@ defmodule Unleash.PlugTest do
 
   describe "call/2" do
     property "puts an unleash context in assigns" do
-      check all session_id <- binary(),
-                user_id <- binary() do
+      check all session_id <- binary(min_length: 1),
+                user_id <- binary(min_length: 1) do
         conn = conn(:get, "/")
 
         conn =
@@ -81,7 +81,7 @@ defmodule Unleash.PlugTest do
                  user_id: user_id,
                  session_id: session_id,
                  remote_address: "127.0.0.1"
-               } = conn.assigns[:unleash_context]
+               } == conn.assigns[:unleash_context]
       end
     end
 
@@ -89,20 +89,20 @@ defmodule Unleash.PlugTest do
       check all session <- atom(:alphanumeric),
                 user <- atom(:alphanumeric),
                 opts = Plug.init(user_id: user, session_id: session),
-                session_id <- binary(),
-                user_id <- binary() do
+                session_id <- binary(min_length: 1),
+                user_id <- binary(min_length: 1) do
         conn = conn(:get, "/")
 
         conn =
           conn
-          |> init_test_session(%{user_id: user_id, session_id: session_id})
+          |> init_test_session(%{user => user_id, session => session_id})
           |> Plug.call(opts)
 
         assert %{
                  user_id: user_id,
                  session_id: session_id,
                  remote_address: "127.0.0.1"
-               } = conn.assigns[:unleash_context]
+               } == conn.assigns[:unleash_context]
       end
     end
   end

@@ -33,7 +33,12 @@ defmodule Unleash.Variant do
         context
       ) do
 
-    [%__MODULE__{stickiness: sticky_field} | _] = variants
+    sticky_field = case variants do
+      [%__MODULE__{stickiness: sticky_field} | _] ->
+          sticky_field
+      _ ->
+        "default"
+    end
     seed = Stickiness.get_seed(sticky_field, context)
     {variant, metadata} =
       case Feature.enabled?(feature, context) do

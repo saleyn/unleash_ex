@@ -21,7 +21,7 @@ defmodule Unleash.VariantTest do
     assert %{
              enabled: false,
              name: "disabled"
-           } == Unleash.get_variant(:flag_without_variants)
+    } == Unleash.get_variant(:flag_without_variants)
   end
 
   describe "get_variant telemetry" do
