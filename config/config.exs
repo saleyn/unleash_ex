@@ -25,6 +25,16 @@ import Config
 # Configuration from the imported file will override the ones defined
 # here (which is why it is important to import them last).
 
+
+config :unleash,
+  sticky_fields: %{
+    "userId" => :user_id,
+    "sessionId" => :session_id,
+    "remoteAddress" => :remote_address,
+    "appName" => :app_name,
+    "environment" => :environment
+  }
+
 cfg_file = Path.expand("#{config_env()}.exs", __DIR__)
 
 File.exists?(cfg_file) && import_config cfg_file

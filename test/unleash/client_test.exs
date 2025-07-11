@@ -89,7 +89,7 @@ defmodule Unleash.ClientTest do
 
       attach_telemetry_event([:unleash, :client, :fetch_features, :stop])
       assert {:error, "{\"version\": \"2\", \"features\":[]}"} = Client.features()
-      assert_received {:telemetry_metadata, metadata}
+      assert_received {:telemetry_metadata, _metadata}
     end
 
     test "publishes exception event" do
