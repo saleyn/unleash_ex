@@ -4,13 +4,19 @@ defmodule Unleash.MetricsTest do
 
   import Mox
 
+  alias Unleash.Config
   alias Unleash.Feature
 
   setup do
     stop_supervised(Unleash.Metrics)
 
+    original_metrics_period = Config.metrics_period()
+    Application.put_env(:unleash, :metrics_period, 60_000_000_000)
     {:ok, metrics} = start_supervised(Unleash.Metrics)
 
+    on_exit(fn ->
+      Application.put_env(:unleash, :metrics_period, original_metrics_period)
+    end)
     %{metrics: metrics}
   end
 
@@ -33,9 +39,8 @@ defmodule Unleash.MetricsTest do
           Unleash.Metrics.add_metric({%Feature{name: feature}, false}, metrics)
         end
 
-        %{toggles: toggles} = :sys.get_state(metrics)
-        f = Map.get(toggles, feature)
-        assert ^f = %{yes: enabled, no: disabled}
+        {:ok, %{bucket: %{toggles: toggles}}} = Unleash.Metrics.get_metrics(metrics)
+        assert  Map.get(toggles, feature) == %{yes: enabled, no: disabled}
 
         Process.send(metrics, :send_metrics, [])
       end
@@ -57,8 +62,10 @@ defmodule Unleash.MetricsTest do
                   nonempty(uniq_list_of(string(:alphanumeric, min_length: 1))),
                 n <- list_of(positive_integer(), length: length(v)),
                 variants = Enum.zip(v, n) do
+        test_pid = self()
+
         Unleash.ClientMock
-        |> allow(self(), metrics)
+        |> allow(test_pid, metrics)
         |> stub(:metrics, fn _ -> %SimpleHttp.Response{} end)
 
         Application.put_env(:unleash, :client, Unleash.ClientMock)
@@ -69,11 +76,11 @@ defmodule Unleash.MetricsTest do
           end
         end
 
-        %{toggles: toggles} = :sys.get_state(metrics)
-        Process.send(metrics, :send_metrics, [])
-        f = Map.get(toggles, :test)
-
-        assert ^f = Map.new(variants)
+        {:ok, %{bucket: %{toggles: toggles}}} = Unleash.Metrics.get_metrics(metrics)
+        assert Map.get(toggles, :test) == Map.new(variants)
+        assert :ok == Process.send(metrics, :send_metrics, [])
+        {:ok, %{bucket: %{toggles: toggles}}} = Unleash.Metrics.get_metrics(metrics)
+        assert Map.get(toggles, :test) == nil
       end
     end
   end
@@ -85,8 +92,8 @@ defmodule Unleash.MetricsTest do
       Unleash.ClientMock
       |> allow(self(), metrics)
       |> expect(:metrics, fn %{bucket: %{toggles: toggles} = _bucket} ->
-        assert ^toggles = %{}
-        %Mojito.Response{}
+        assert toggles == %{}
+        %Finch.Response{}
       end)
 
       Application.put_env(:unleash, :client, Unleash.ClientMock)
@@ -100,9 +107,7 @@ defmodule Unleash.MetricsTest do
                 feature <- string(:alphanumeric, min_length: 1) do
         Unleash.ClientMock
         |> allow(self(), metrics)
-        |> expect(:metrics, fn %{bucket: %{toggles: toggles} = _bucket} ->
-          f = Map.get(toggles, feature)
-          assert ^f = %{yes: enabled, no: disabled}
+        |> expect(:metrics, fn _ ->
           %SimpleHttp.Response{}
         end)
 
@@ -116,7 +121,11 @@ defmodule Unleash.MetricsTest do
           Unleash.Metrics.add_metric({%Feature{name: feature}, false}, metrics)
         end
 
-        assert :ok = GenServer.call(metrics, :send_metrics)
+        {:ok, %{bucket: %{toggles: toggles}}} = Unleash.Metrics.get_metrics(metrics)
+        assert Map.get(toggles, feature) == %{yes: enabled, no: disabled}
+        assert :ok == GenServer.call(metrics, :send_metrics)
+        {:ok, %{bucket: %{toggles: toggles}}} = Unleash.Metrics.get_metrics(metrics)
+        assert Map.get(toggles, :test) == nil
       end
     end
   end
