@@ -18,8 +18,13 @@ defmodule Unleash.Strategy do
   alias Unleash.Variant
 
   def update_map(map) when is_map(map) do
-    {_, new_map} =
+    {_, new_map1} =
       Map.get_and_update(map, "variants", fn variants ->
+        {variants, Enum.map(variants || [], &Variant.from_map/1)}
+      end)
+
+    {_, new_map2} =
+      Map.get_and_update(new_map1, "parameters", fn parameters ->
         {variants, Enum.map(variants || [], &Variant.from_map/1)}
       end)
 
