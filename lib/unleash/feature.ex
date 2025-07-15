@@ -11,6 +11,7 @@ defmodule Unleash.Feature do
             description: "",
             enabled: false,
             strategies: [],
+            parameters: %{},
             variants: []
 
   def from_map(map) when is_map(map) do
@@ -21,6 +22,7 @@ defmodule Unleash.Feature do
       description: Map.get(map, "description", ""),
       enabled: Map.get(map, "enabled", false),
       strategies: Enum.map(Map.get(map, "strategies", []) || [], &Strategy.update_map/1),
+      parameters: Map.get(map, "parameters", %{}),
       variants: Enum.map(Map.get(map, "variants", []) || [], &Variant.from_map/1)
     }
   end

@@ -22,18 +22,16 @@ defmodule Unleash.Stickiness do
     |> Map.get(sticky_field, sticky_field)
   end
 
-  defp stickiness_value_(%{<<"userId">> => user_id}) when user_id != "" do
+  defp stickiness_value_(%{user_id: user_id}) when user_id != "" do
     user_id
   end
-  defp stickiness_value_(%{<<"sessionId">> => session_id}) when session_id != "" do
+  defp stickiness_value_(%{session_id: session_id}) when session_id != "" do
     session_id
   end
-  defp stickiness_value_(%{<<"remoteAddress">> => remote_address}) when remote_address != "" do
+  defp stickiness_value_(%{remote_address: remote_address}) when remote_address != "" do
     remote_address
   end
-  defp stickiness_value_(_ctx) do
-    random()
-  end
+  defp stickiness_value_(_ctx), do: random()
 
   defp random,
     do: Integer.to_string(round(:rand.uniform() * 100) + 1)
