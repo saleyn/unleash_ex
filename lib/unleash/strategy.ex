@@ -23,12 +23,11 @@ defmodule Unleash.Strategy do
         {variants, Enum.map(variants || [], &Variant.from_map/1)}
       end)
 
-    {_, new_map2} =
-      Map.get_and_update(new_map1, "parameters", fn parameters ->
-        {variants, Enum.map(variants || [], &Variant.from_map/1)}
+    {_, new_map2} = Map.get_and_update(new_map1, "parameters", fn parameters ->
+        {parameters, parameters || %{}}
       end)
 
-    new_map
+    new_map2
   end
 
   defmacro __using__(opts) do
