@@ -1,6 +1,10 @@
 defmodule Unleash.Http.SimpleHttp do
   alias Unleash.Config
 
+  require Logger
+
+  @erro_code 503
+
   def get(url, headers) do
     opts = Config.http_opts()
     {opt_headers, opts} = Map.pop(opts, :headers, [])
@@ -23,15 +27,24 @@ defmodule Unleash.Http.SimpleHttp do
     SimpleHttp.post(url, [{:headers, headers}, {:body, body} | Map.to_list(opts)])
   end
 
-  def status_code!({:ok, %SimpleHttp.Response{status: code}}), do: code
-  def status_code!({:error, reason}) when is_atom(reason), do: :erlang.error(reason)
-  def status_code!({:error, reason}), do: RuntimeError.exception(reason)
+  def status_code({:ok, %SimpleHttp.Response{status: code}}), do: code
 
-  def response_body!({:ok, %SimpleHttp.Response{body: body}}), do: body
-  def response_body!({:error, reason}) when is_atom(reason), do: :erlang.error(reason)
-  def response_body!({:error, reason}), do: RuntimeError.exception(reason)
+  def status_code({:error, reason}) do
+    Logger.error(Kernel.inspect(reason))
+    @erro_code
+  end
 
-  def response_headers!({:ok, %SimpleHttp.Response{headers: hdrs}}), do: hdrs
-  def response_headers!({:error, reason}) when is_atom(reason), do: :erlang.error(reason)
-  def response_headers!({:error, reason}), do: RuntimeError.exception(reason)
+  def response_body({:ok, %SimpleHttp.Response{body: body}}), do: body
+
+  def response_body({:error, reason}) do
+    Logger.error(Kernel.inspect(reason))
+    @erro_code
+  end
+
+  def response_headers({:ok, %SimpleHttp.Response{headers: hdrs}}), do: hdrs
+
+  def response_headers({:error, reason}) do
+    Logger.error(Kernel.inspect(reason))
+    @erro_code
+  end
 end

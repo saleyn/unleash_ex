@@ -18,6 +18,8 @@ defmodule Unleash do
   alias Unleash.Repo
   alias Unleash.Variant
 
+  require Logger
+
   @typedoc """
   The context needed for a few activation strategies. Check their documentation
   for the required key.
@@ -176,6 +178,8 @@ defmodule Unleash do
 
   @doc false
   def start(_type, _args) do
+    :persistent_term.put(Config.persisten_term_key(), false)
+
     children =
       [
         {Repo, Config.disable_client()},
@@ -185,12 +189,33 @@ defmodule Unleash do
       |> Enum.map(fn {module, _e} -> module end)
 
     if children != [] do
-      case Config.client().register_client() do
-        {:ok, _} -> :ok
-        {:error, reason} -> RuntimeError.exception("Failed to register unleash client: #{reason}")
-      end
+      spawn(fn ->
+        do_registration(
+          Config.registration_attempts(),
+          0,
+          Config.registration_attempts_interval()
+        )
+      end)
     end
 
     Supervisor.start_link(children, strategy: :one_for_one)
+  end
+
+  def do_registration(n, n, _) do
+    Logger.error("Failed to register unleash client after #{n} attempts")
+  end
+
+  def do_registration(n, m, interval) do
+    case Config.client().register_client() do
+      {:ok, _} ->
+        :persistent_term.put(Config.persisten_term_key(), true)
+        Logger.info("uleash client was registered after #{m + 1} attempts")
+        :ok
+
+      {:error, reason} ->
+        Logger.error("Failed to register unleash client: #{reason}")
+        :timer.sleep(interval)
+        do_registration(n, m + 1, interval)
+    end
   end
 end

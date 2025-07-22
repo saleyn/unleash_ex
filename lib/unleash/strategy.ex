@@ -23,7 +23,8 @@ defmodule Unleash.Strategy do
         {variants, Enum.map(variants || [], &Variant.from_map/1)}
       end)
 
-    {_, new_map2} = Map.get_and_update(new_map1, "parameters", fn parameters ->
+    {_, new_map2} =
+      Map.get_and_update(new_map1, "parameters", fn parameters ->
         {parameters, parameters || %{}}
       end)
 
