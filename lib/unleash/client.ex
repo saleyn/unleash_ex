@@ -66,11 +66,12 @@ defmodule Unleash.Client do
         {result, metadata} = send_data(url, client, start_metadata)
 
         case Config.http_client().status_code(result) do
-          200 ->
+          # following go implementaion
+          sc when sc >= 200 and sc < 300 ->
             {{:ok,
               result
               |> Config.http_client().response_body()
-              |> Jason.decode!()}, metadata}
+              |> jdecode()}, metadata}
 
           _ ->
             {{:error, Config.http_client().response_body(result)}, metadata}
@@ -168,5 +169,12 @@ defmodule Unleash.Client do
 
   def telemetry_metadata(metadata \\ %{}) do
     Config.telemetry_metadata() |> Map.merge(metadata)
+  end
+
+  defp jdecode(str) do
+    case Jason.decode(str) do
+      {:ok, dec} -> dec
+      _ -> ""
+    end
   end
 end
