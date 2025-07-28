@@ -24,8 +24,8 @@ defmodule Unleash.Config do
       ],
       debug: false
     },
-    persisten_term_key: :unleash_registered,
-    registration_attempts: 50,
+    persisten_term_key: :unleash_client_ready,
+    registration_attempts: 5,
     registration_attempts_interval: 5000,
     app_env: :test
   }

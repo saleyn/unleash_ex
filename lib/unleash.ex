@@ -208,12 +208,11 @@ defmodule Unleash do
   def do_registration(n, m, interval) do
     case Config.client().register_client() do
       {:ok, _} ->
-        :persistent_term.put(Config.persisten_term_key(), true)
         Logger.info("uleash client was registered after #{m + 1} attempts")
         :ok
 
       {:error, reason} ->
-        Logger.error("Failed to register unleash client: #{reason}")
+        Logger.warning("Failed to register unleash client: #{reason}")
         :timer.sleep(interval)
         do_registration(n, m + 1, interval)
     end

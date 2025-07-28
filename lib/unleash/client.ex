@@ -1,5 +1,6 @@
 defmodule Unleash.Client do
   @moduledoc false
+  require Logger
 
   @callback features(String.t()) :: {:ok, map()} | :cached
   @callback register_client() :: {:ok, map()} | :cached
@@ -96,6 +97,11 @@ defmodule Unleash.Client do
         {:cached, Map.put(meta, :http_response_status, 304)}
 
       200 ->
+        if :persistent_term.get(Config.persisten_term_key(), false) == false do
+          :persistent_term.put(Config.persisten_term_key(), true)
+          Logger.info("#{Config.appname()} is ready")
+        end
+
         features =
           response
           |> Config.http_client().response_body()
