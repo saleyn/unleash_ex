@@ -1,16 +1,17 @@
 defmodule Unleash.Stickiness do
-
   def get_seed(sticky_field, ctx)
-    when sticky_field == "default"
-    when sticky_field == "" do
+      when sticky_field == "default"
+      when sticky_field == "" do
     stickiness_value_(ctx)
   end
 
   def get_seed(sticky_field, ctx) do
     sticky_context_field = sticky_context_field(sticky_field)
+
     case Map.get(ctx, sticky_context_field, "") do
       "" ->
-        stickiness_value_(ctx);
+        stickiness_value_(ctx)
+
       value ->
         value
     end
@@ -25,12 +26,15 @@ defmodule Unleash.Stickiness do
   defp stickiness_value_(%{user_id: user_id}) when user_id != "" do
     user_id
   end
+
   defp stickiness_value_(%{session_id: session_id}) when session_id != "" do
     session_id
   end
+
   defp stickiness_value_(%{remote_address: remote_address}) when remote_address != "" do
     remote_address
   end
+
   defp stickiness_value_(_ctx), do: random()
 
   defp random,

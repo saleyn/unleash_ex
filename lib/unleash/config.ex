@@ -24,9 +24,11 @@ defmodule Unleash.Config do
       ],
       debug: false
     },
+    persisten_term_key: :unleash_client_ready,
+    registration_attempts: 5,
+    registration_attempts_interval: 5000,
     app_env: :test
   }
-
 
   if Mix.env() not in [:test] do
     @app Application.get_application(__MODULE__)
@@ -72,6 +74,12 @@ defmodule Unleash.Config do
   def client, do: application_env(:client)
 
   def http_opts, do: application_env(:http_opts)
+
+  def persisten_term_key, do: application_env(:persisten_term_key)
+
+  def registration_attempts, do: application_env(:registration_attempts)
+
+  def registration_attempts_interval, do: application_env(:registration_attempts_interval)
 
   if Mix.env() in [:test] do
     def http_client, do: application_env(:http_client)

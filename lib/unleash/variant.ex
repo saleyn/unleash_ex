@@ -6,21 +6,28 @@ defmodule Unleash.Variant do
   alias Unleash.Strategy.Utils
 
   @derive Jason.Encoder
-  defstruct name: "", # Name is the value of the variant name.
-            payload: %{}, # Payload is the value of the variant payload
-            enabled: true, # Enabled indicates whether the variant is enabled. This is only false when it's a default variant
-            feature_enabled: false, # FeatureEnabled indicates whether the Feature for this variant is enabled
-            weight: 0, # Weight is the traffic ratio for the request
+  # Name is the value of the variant name.
+  defstruct name: "",
+            # Payload is the value of the variant payload
+            payload: %{},
+            # Enabled indicates whether the variant is enabled. This is only false when it's a default variant
+            enabled: true,
+            # FeatureEnabled indicates whether the Feature for this variant is enabled
+            feature_enabled: false,
+            # Weight is the traffic ratio for the request
+            weight: 0,
             stickiness: "",
-            overrides: [] # Override is used to get a variant according to the Unleash context field
+            # Override is used to get a variant according to the Unleash context field
+            overrides: []
 
   @type t :: %{
-    enabled: boolean(),
-    name: String.t(),
-    payload: map(),
-    feature_enabled: boolean(),
-    weight: integer(),
-    stickiness: binary()}
+          enabled: boolean(),
+          name: String.t(),
+          payload: map(),
+          feature_enabled: boolean(),
+          weight: integer(),
+          stickiness: binary()
+        }
 
   @type result :: %{
           required(:enabled) => boolean(),
@@ -32,14 +39,17 @@ defmodule Unleash.Variant do
         %Feature{variants: variants, strategies: strategies, name: name} = feature,
         context
       ) do
-
-    sticky_field = case variants do
-      [%__MODULE__{stickiness: sticky_field} | _] ->
+    sticky_field =
+      case variants do
+        [%__MODULE__{stickiness: sticky_field} | _] ->
           sticky_field
-      _ ->
-        "default"
-    end
+
+        _ ->
+          "default"
+      end
+
     seed = Stickiness.get_seed(sticky_field, context)
+
     {variant, metadata} =
       case Feature.enabled?(feature, context) do
         {true, _} -> variants(variants(strategies, context) ++ variants, name, context, seed)
@@ -141,7 +151,8 @@ defmodule Unleash.Variant do
     end
   end
 
-  defp variants(_variants, _name, _context, _seed), do: {disabled(), %{reason: :feature_has_no_variants}}
+  defp variants(_variants, _name, _context, _seed),
+    do: {disabled(), %{reason: :feature_has_no_variants}}
 
   defp variants([], _context), do: []
 

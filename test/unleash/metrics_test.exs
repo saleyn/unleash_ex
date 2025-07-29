@@ -17,6 +17,7 @@ defmodule Unleash.MetricsTest do
     on_exit(fn ->
       Application.put_env(:unleash, :metrics_period, original_metrics_period)
     end)
+
     %{metrics: metrics}
   end
 
@@ -40,7 +41,7 @@ defmodule Unleash.MetricsTest do
         end
 
         {:ok, %{bucket: %{toggles: toggles}}} = Unleash.Metrics.get_metrics(metrics)
-        assert  Map.get(toggles, feature) == %{yes: enabled, no: disabled}
+        assert Map.get(toggles, feature) == %{yes: enabled, no: disabled}
 
         Process.send(metrics, :send_metrics, [])
       end

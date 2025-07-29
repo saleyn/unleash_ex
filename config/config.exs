@@ -25,7 +25,6 @@ import Config
 # Configuration from the imported file will override the ones defined
 # here (which is why it is important to import them last).
 
-
 config :unleash,
   sticky_fields: %{
     "userId" => :user_id,
