@@ -178,6 +178,9 @@ defmodule Unleash do
 
   @doc false
   def start(_type, _args) do
+    # Configure httpc to disable keep-alive connections
+    configure_httpc()
+
     :persistent_term.put(Config.persisten_term_key(), false)
 
     children =
@@ -215,6 +218,83 @@ defmodule Unleash do
         Logger.warning("Failed to register unleash client: #{reason}")
         :timer.sleep(interval)
         do_registration(n, m + 1, interval)
+    end
+  end
+
+  defp configure_httpc do
+    # Ensure inets/httpc is started
+    :application.ensure_all_started(:inets)
+
+    # Disable keep-alive connections
+    :httpc.set_options([
+      {:max_sessions, 0},          # No session reuse
+      {:max_keep_alive_length, 0}, # No keep-alive connections
+      {:keep_alive_timeout, 0},    # No keep-alive timeout
+      {:max_pipeline_length, 0}    # Disable HTTP pipelining
+    ])
+
+    # Start monitor to kill hanging httpc:handle_answer/3 processes (if enabled)
+    if Config.httpc_monitor_enabled() do
+      start_httpc_monitor()
+      Logger.info("httpc configured with keep-alive disabled and process monitor started")
+    else
+      Logger.info("httpc configured with keep-alive disabled (process monitor disabled)")
+    end
+  end
+
+  def start_httpc_monitor do
+    spawn_link(fn -> httpc_monitor_loop(%{}) end)
+  end
+
+  defp httpc_monitor_loop(process_tracker) do
+    # Check at configured interval for hanging httpc processes
+    Process.sleep(Config.httpc_monitor_interval())
+
+    # Track and kill httpc:handle_answer/3 processes that hang too long
+    updated_tracker = monitor_and_kill_hanging_processes(process_tracker)
+
+    httpc_monitor_loop(updated_tracker)
+  end
+
+  defp monitor_and_kill_hanging_processes(process_tracker) do
+    current_time = System.monotonic_time(:millisecond)
+    kill_timeout = Config.httpc_kill_timeout()
+
+    # Find all httpc handle_answer processes
+    httpc_processes =
+      Process.list()
+      |> Enum.filter(&httpc_handle_answer_process?/1)
+
+    # Update tracker with new processes
+    updated_tracker =
+      Enum.reduce(httpc_processes, process_tracker, fn pid, tracker ->
+        Map.put_new(tracker, pid, current_time)
+      end)
+
+    # Kill processes that have been hanging too long
+    Enum.each(updated_tracker, fn {pid, start_time} ->
+      if Process.alive?(pid) do
+        time_elapsed = current_time - start_time
+
+        if time_elapsed > kill_timeout and httpc_handle_answer_process?(pid) do
+          Logger.error("Killing hanging httpc:handle_answer/3 process #{inspect(pid)} after #{time_elapsed}ms")
+          Process.exit(pid, :kill)
+        end
+      end
+    end)
+
+    # Clean up dead processes from tracker
+    updated_tracker
+    |> Enum.filter(fn {pid, _} -> Process.alive?(pid) end)
+    |> Map.new()
+  end
+
+  defp httpc_handle_answer_process?(pid) do
+    case Process.info(pid, :current_function) do
+      {:current_function, {:httpc, :handle_answer, 3}} -> true
+      {:current_function, {:httpc_handler, :handle_answer, _}} -> true
+      {:current_function, {:httpc_handler, :handle_info, _}} -> true
+      _ -> false
     end
   end
 end

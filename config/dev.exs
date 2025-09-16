@@ -5,9 +5,6 @@ import Config
 config :unleash,
   disable_client: false,
   disable_metrics: false,
-  http_opts: %{
-    debug: false
-  },
   url: "http://localhost:4242/api/",
   app_env: :dev,
   appname: "unleash_test"
