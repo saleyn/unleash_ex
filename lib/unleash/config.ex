@@ -6,7 +6,7 @@ defmodule Unleash.Config do
     appname: "unleash_ex",
     instance_id: Atom.to_string(node()),
     auth_token: {:env_var, "UNLEASH_CLIENT_KEY"},
-    metrics_period: 10 * 60 * 1000,
+    metrics_period: 60 * 1000,
     features_period: 15 * 1000,
     strategies: Unleash.Strategies,
     backup_file: nil,
@@ -17,7 +17,7 @@ defmodule Unleash.Config do
     client: Unleash.Client,
     http_client: Unleash.Http.SimpleHttp,
     http_opts: %{
-      ssl: [verify: :verify_none],
+      ssl: false,
       headers_format: :binary,
       headers: [
         "Content-Type": "application/json"
