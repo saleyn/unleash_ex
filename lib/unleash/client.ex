@@ -100,7 +100,7 @@ defmodule Unleash.Client do
       200 ->
         if :persistent_term.get(Config.persisten_term_key(), false) == false do
           :persistent_term.put(Config.persisten_term_key(), true)
-          Logger.info("uleash client is ready")
+          Logger.info("#{Config.appname()} #{__MODULE__}; uleash client is ready")
         end
 
         features =

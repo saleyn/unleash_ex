@@ -30,21 +30,30 @@ defmodule Unleash.Http.SimpleHttp do
   def status_code({:ok, %SimpleHttp.Response{status: code}}), do: code
 
   def status_code({:error, reason}) do
-    Logger.error(Kernel.inspect(reason))
+    Logger.error(
+      "#{Config.appname()} #{__MODULE__}; status code error: #{Kernel.inspect(reason)}"
+    )
+
     @erro_code
   end
 
   def response_body({:ok, %SimpleHttp.Response{body: body}}), do: body
 
   def response_body({:error, reason}) do
-    Logger.error(Kernel.inspect(reason))
+    Logger.error(
+      "#{Config.appname()} #{__MODULE__}; response body error: #{Kernel.inspect(reason)}"
+    )
+
     @erro_code
   end
 
   def response_headers({:ok, %SimpleHttp.Response{headers: hdrs}}), do: hdrs
 
   def response_headers({:error, reason}) do
-    Logger.error(Kernel.inspect(reason))
+    Logger.error(
+      "#{Config.appname()} #{__MODULE__}; response_headers error: #{Kernel.inspect(reason)}"
+    )
+
     @erro_code
   end
 end

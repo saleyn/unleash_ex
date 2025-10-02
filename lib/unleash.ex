@@ -202,17 +202,25 @@ defmodule Unleash do
   end
 
   def do_registration(n, n, _) do
-    Logger.error("Failed to register unleash client after #{n} attempts")
+    Logger.error(
+      "#{Config.appname()} #{__MODULE__}; Failed to register unleash client after #{n} attempts"
+    )
   end
 
   def do_registration(n, m, interval) do
     case Config.client().register_client() do
       {:ok, _} ->
-        Logger.info("uleash client was registered after #{m + 1} attempts")
+        Logger.info(
+          "#{Config.appname()} #{__MODULE__} uleash client was registered after #{m + 1} attempts"
+        )
+
         :ok
 
       {:error, reason} ->
-        Logger.warning("Failed to register unleash client: #{reason}")
+        Logger.warning("#{Config.appname()} #{__MODULE__}; Failed to register unleash client",
+          reason: reason
+        )
+
         :timer.sleep(interval)
         do_registration(n, m + 1, interval)
     end

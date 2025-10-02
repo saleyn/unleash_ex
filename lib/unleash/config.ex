@@ -22,7 +22,8 @@ defmodule Unleash.Config do
       headers: [
         "Content-Type": "application/json"
       ],
-      debug: false
+      debug: false,
+      timeout: 5000
     },
     persisten_term_key: :unleash_client_ready,
     registration_attempts: 5,

@@ -5,6 +5,8 @@ defmodule Unleash.Metrics do
   alias Unleash.Config
   alias Unleash.Feature
 
+  require Logger
+
   @type t :: %{stop: String.t(), start: String.t(), toggles: map()}
 
   def add_metric({feature, enabled?}, pid \\ Unleash.Metrics) do
@@ -23,11 +25,16 @@ defmodule Unleash.Metrics do
     variant
   end
 
-  if Config.test?() do
-    def get_metrics(pid \\ Unleash.Metrics) do
-      GenServer.call(pid, :get_metrics)
-    end
+  # if Config.test?() do
+  def get_metrics(pid \\ Unleash.Metrics) do
+    GenServer.call(pid, :get_metrics)
   end
+
+  def do_send_metrics(pid \\ Unleash.Metrics) do
+    GenServer.call(pid, :send_metrics)
+  end
+
+  # end
 
   def init(_) do
     {:ok, init_state()}
@@ -62,24 +69,33 @@ defmodule Unleash.Metrics do
     {:noreply, send_metrics(state)}
   end
 
-  if Config.test?() do
-    def handle_call(:send_metrics, _from, state) do
-      {:reply, :ok, send_metrics(state)}
-    end
-
-    def handle_call(:get_metrics, _from, state) do
-      {:reply, {:ok, to_bucket(state)}, state}
-    end
+  # if Config.test?() do
+  def handle_call(:send_metrics, _from, state) do
+    {:reply, :ok, send_metrics(state)}
   end
 
+  def handle_call(:get_metrics, _from, state) do
+    {:reply, {:ok, to_bucket(state)}, state}
+  end
+
+  # end
+
   defp send_metrics(state) do
-    state
-    |> to_bucket()
-    |> Config.client().metrics()
+    resp =
+      state
+      |> to_bucket()
+      |> Config.client().metrics()
 
     schedule_metrics()
 
-    init_state()
+    case resp do
+      {:ok, _} ->
+        init_state()
+
+      _ ->
+        Logger.error("#{Config.appname()} #{__MODULE__}; HTTP response: #{Kernel.inspect(resp)}")
+        state
+    end
   end
 
   defp handle_metric(%{toggles: features} = state, %Feature{name: feature}, enabled?) do
