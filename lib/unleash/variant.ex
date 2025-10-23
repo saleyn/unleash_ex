@@ -151,10 +151,10 @@ defmodule Unleash.Variant do
             Utils.normalize(seed, name, total_weight)
           )
 
-        {to_map(variant, true), %{metadata | reason: :variant_selected, variant: variant}}
+        {to_map(variant, true), %{metadata | reason: :variant_selected, variant: variant.name}}
 
       variant ->
-        {to_map(variant, true), %{metadata | reason: :override_found}}
+        {to_map(variant, true), %{metadata | reason: :override_found, variant: variant.name}}
     end
   end
 
