@@ -103,16 +103,17 @@ defmodule Unleash do
               nil ->
                 {default, %{reason: :feature_not_found}}
 
-              feature ->
+              loaded_feature ->
                 {result, strategy_evaluations} =
-                  Feature.enabled?(feature, Map.put(context, :feature_toggle, feature.name))
+                  Feature.enabled?(loaded_feature, Map.put(context, :feature_toggle, loaded_feature.name))
 
-                Metrics.add_metric({feature, result})
+                Metrics.add_metric({loaded_feature, result})
 
                 metadata = %{
+                  feature_name: loaded_feature.name,
                   reason: :strategy_evaluations,
                   strategy_evaluations: strategy_evaluations,
-                  feature_enabled: feature.enabled
+                  enabled: loaded_feature.enabled
                 }
 
                 {result, metadata}
