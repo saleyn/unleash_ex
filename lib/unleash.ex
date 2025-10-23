@@ -151,7 +151,7 @@ defmodule Unleash do
   """
   @spec get_variant(atom() | String.t(), map(), Variant.result()) :: Variant.result()
   def get_variant(name, context \\ %{}, fallback \\ Variant.disabled()) do
-    start_metadata = Unleash.Client.telemetry_metadata(%{variant: name, context: context})
+    start_metadata = Unleash.Client.telemetry_metadata(%{feature_name: name, context: context})
 
     :telemetry.span(
       [:unleash, :variant, :get],
