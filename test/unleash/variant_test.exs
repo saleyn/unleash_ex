@@ -47,7 +47,7 @@ defmodule Unleash.VariantTest do
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
 
-      assert metadata.variant === :flag_without_variants
+      assert metadata.feature_name === "flag_without_variants"
       assert metadata.reason === :feature_has_no_variants
 
       assert is_number(measurements[:duration])
@@ -77,7 +77,7 @@ defmodule Unleash.VariantTest do
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
 
-      assert metadata.variant === :disabled_variant
+      assert metadata.feature_name === "disabled_variant"
       assert metadata.reason === :feature_disabled
 
       assert is_number(measurements[:duration])
@@ -92,7 +92,7 @@ defmodule Unleash.VariantTest do
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
 
-      assert metadata.variant === :weight_test
+      assert metadata.feature_name === "weight_test"
       assert metadata.reason === :variant_selected
 
       assert is_number(measurements[:duration])
@@ -107,7 +107,7 @@ defmodule Unleash.VariantTest do
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
 
-      assert metadata.variant === :override_test
+      assert metadata.feature_name === "override_test"
       assert metadata.reason === :override_found
 
       assert is_number(measurements[:duration])
