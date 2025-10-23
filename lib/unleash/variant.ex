@@ -62,8 +62,7 @@ defmodule Unleash.Variant do
       feature_name: name,
       enabled: feature_enabled,
       seed: seed,
-      variants: Enum.map(effective_variants, &{&1.name, &1.weight}),
-      variant: nil
+      variants: Enum.map(effective_variants, &{&1.name, &1.weight})
     }
 
     {variant, Map.merge(metadata, common_metadata)}
