@@ -62,8 +62,7 @@ defmodule Unleash.Variant do
       feature_name: name,
       enabled: feature_enabled,
       seed: seed,
-      variants: Enum.map(effective_variants, &{&1.name, &1.weight}),
-      variant: nil
+      variants: Enum.map(effective_variants, &{&1.name, &1.weight})
     }
 
     {variant, Map.merge(metadata, common_metadata)}
@@ -151,10 +150,10 @@ defmodule Unleash.Variant do
             Utils.normalize(seed, name, total_weight)
           )
 
-        {to_map(variant, true), %{metadata | reason: :variant_selected, variant: variant}}
+        {to_map(variant, true), %{metadata | reason: :variant_selected, variant: variant.name}}
 
       variant ->
-        {to_map(variant, true), %{metadata | reason: :override_found}}
+        {to_map(variant, true), %{metadata | reason: :override_found, variant: variant.name}}
     end
   end
 
