@@ -33,7 +33,7 @@ defmodule Unleash.VariantTest do
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
 
-      assert metadata.variant === :disabled_variant
+      assert metadata.feature_name === :disabled_variant
 
       assert is_number(measurements[:system_time])
       assert is_number(measurements[:monotonic_time])
@@ -62,7 +62,7 @@ defmodule Unleash.VariantTest do
       assert_received {:telemetry_metadata, metadata}
       assert_received {:telemetry_measurements, measurements}
 
-      assert metadata.variant === :inexistent_feature_flag
+      assert metadata.feature_name === :inexistent_feature_flag
       assert metadata.reason === :feature_not_found
 
       assert is_number(measurements[:duration])
