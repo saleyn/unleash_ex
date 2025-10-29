@@ -65,16 +65,16 @@ defmodule Unleash.Client do
       fn ->
         {result, metadata} = send_data(url, client, start_metadata)
 
-        case Config.http_client().status_code(result) do
+        case Config.http_client().status_code!(result) do
           # following go implementaion
           sc when sc >= 200 and sc < 300 ->
             {{:ok,
               result
-              |> Config.http_client().response_body()
+              |> Config.http_client().response_body!()
               |> jdecode()}, metadata}
 
           _ ->
-            {{:error, Config.http_client().response_body(result)}, metadata}
+            {{:error, Config.http_client().response_body!(result)}, metadata}
         end
       end
     )
@@ -93,25 +93,25 @@ defmodule Unleash.Client do
   end
 
   defp handle_feature_response(response, meta) do
-    case Config.http_client().status_code(response) do
+    case Config.http_client().status_code!(response) do
       304 ->
         {:cached, Map.put(meta, :http_response_status, 304)}
 
       200 ->
         if :persistent_term.get(Config.persisten_term_key(), false) == false do
           :persistent_term.put(Config.persisten_term_key(), true)
-          Logger.info("#{Config.appname()} #{__MODULE__}; uleash client is ready")
+          Logger.info("uleash client is ready")
         end
 
         features =
           response
-          |> Config.http_client().response_body()
+          |> Config.http_client().response_body!()
           |> Jason.decode!()
           |> Features.from_map!()
 
         etag =
           response
-          |> Config.http_client().response_headers()
+          |> Config.http_client().response_headers!()
           |> Map.new()
           |> Map.get("etag", :ok)
 
@@ -119,7 +119,7 @@ defmodule Unleash.Client do
          Map.merge(meta, %{http_response_status: 200, etag: etag})}
 
       i when i >= 400 ->
-        {{:error, Config.http_client().response_body(response)},
+        {{:error, Config.http_client().response_body!(response)},
          Map.put(meta, :http_response_status, i)}
 
       status ->
@@ -134,7 +134,7 @@ defmodule Unleash.Client do
       |> Jason.encode!()
       |> then(&Config.http_client().post(url, headers(), &1))
 
-    code = Config.http_client().status_code(result)
+    code = Config.http_client().status_code!(result)
     {result, Map.put(meta, :http_response_status, code)}
   end
 

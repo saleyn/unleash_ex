@@ -65,23 +65,25 @@ defmodule Unleash.MetricsTest do
                 variants = Enum.zip(v, n) do
         test_pid = self()
 
+        feature = "feature_1"
         Unleash.ClientMock
         |> allow(test_pid, metrics)
         |> stub(:metrics, fn _ -> %SimpleHttp.Response{} end)
 
         Application.put_env(:unleash, :client, Unleash.ClientMock)
+        assert :ok == Process.send(metrics, :send_metrics, [])
 
         for {v, n} <- variants do
           for _ <- 1..n do
-            Unleash.Metrics.add_variant_metric({:test, %{name: v}}, metrics)
+            Unleash.Metrics.add_variant_metric({%Feature{name: feature}, %{name: v}}, metrics)
           end
         end
 
         {:ok, %{bucket: %{toggles: toggles}}} = Unleash.Metrics.get_metrics(metrics)
-        assert Map.get(toggles, :test) == Map.new(variants)
+        assert Map.get(Map.get(toggles, feature), :variants) == Map.new(variants)
         assert :ok == Process.send(metrics, :send_metrics, [])
         {:ok, %{bucket: %{toggles: toggles}}} = Unleash.Metrics.get_metrics(metrics)
-        assert Map.get(toggles, :test) == nil
+        assert Map.get(toggles, feature) == nil
       end
     end
   end

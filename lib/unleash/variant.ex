@@ -50,15 +50,19 @@ defmodule Unleash.Variant do
 
     seed = Stickiness.get_seed(sticky_field, context)
 
+    effective_variants = variants(strategies, context) ++ variants
+    {feature_enabled, _} = Feature.enabled?(feature, context)
     {variant, metadata} =
-      case Feature.enabled?(feature, context) do
-        {true, _} -> variants(variants(strategies, context) ++ variants, name, context, seed)
+      case feature_enabled do
+        true -> variants(effective_variants, name, context, seed)
         _ -> {disabled(), %{reason: :feature_disabled}}
       end
 
     common_metadata = %{
+      feature_name: name,
+      enabled: feature_enabled,
       seed: seed,
-      variants: Enum.map(variants, &{&1.name, &1.weight})
+      variants: Enum.map(effective_variants, &{&1.name, &1.weight})
     }
 
     {variant, Map.merge(metadata, common_metadata)}
@@ -129,9 +133,11 @@ defmodule Unleash.Variant do
       |> Enum.sum()
 
     metadata = %{
+      feature_name: name,
       seed: seed,
       variants: Enum.map(variants, &{&1.name, &1.weight}),
-      reason: nil
+      reason: nil,
+      variant: nil
     }
 
     variants
@@ -144,10 +150,10 @@ defmodule Unleash.Variant do
             Utils.normalize(seed, name, total_weight)
           )
 
-        {to_map(variant, true), %{metadata | reason: :variant_selected}}
+        {to_map(variant, true), %{metadata | reason: :variant_selected, variant: variant.name}}
 
       variant ->
-        {to_map(variant, true), %{metadata | reason: :override_found}}
+        {to_map(variant, true), %{metadata | reason: :override_found, variant: variant.name}}
     end
   end
 

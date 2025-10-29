@@ -103,16 +103,17 @@ defmodule Unleash do
               nil ->
                 {default, %{reason: :feature_not_found}}
 
-              feature ->
+              loaded_feature ->
                 {result, strategy_evaluations} =
-                  Feature.enabled?(feature, Map.put(context, :feature_toggle, feature.name))
+                  Feature.enabled?(loaded_feature, Map.put(context, :feature_toggle, loaded_feature.name))
 
-                Metrics.add_metric({feature, result})
+                Metrics.add_metric({loaded_feature, result})
 
                 metadata = %{
+                  feature_name: loaded_feature.name,
                   reason: :strategy_evaluations,
                   strategy_evaluations: strategy_evaluations,
-                  feature_enabled: feature.enabled
+                  enabled: loaded_feature.enabled
                 }
 
                 {result, metadata}
@@ -149,8 +150,8 @@ defmodule Unleash do
       %{enabled: false, name: "disabled"}
   """
   @spec get_variant(atom() | String.t(), map(), Variant.result()) :: Variant.result()
-  def get_variant(name, context \\ %{}, fallback \\ Variant.disabled()) do
-    start_metadata = Unleash.Client.telemetry_metadata(%{variant: name, context: context})
+  def get_variant(feature, context \\ %{}, fallback \\ Variant.disabled()) do
+    start_metadata = Unleash.Client.telemetry_metadata(%{feature_name: feature, context: context})
 
     :telemetry.span(
       [:unleash, :variant, :get],
@@ -160,14 +161,16 @@ defmodule Unleash do
           if Config.disable_client() do
             {fallback, %{reason: :disabled_client}}
           else
-            name
+            feature
             |> Repo.get_feature()
             |> case do
               nil ->
                 {fallback, %{reason: :feature_not_found}}
 
-              feature ->
-                Variant.select_variant(feature, context)
+              loaded_feature ->
+                {result, metadata} = Variant.select_variant(loaded_feature, context)
+                Metrics.add_variant_metric({loaded_feature, result})
+                {result, metadata}
             end
           end
 
