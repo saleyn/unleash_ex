@@ -130,7 +130,7 @@ defmodule Unleash.Metrics do
     &(
       &1
       |> Map.update!(:yes, fn x -> x + 1 end)
-      |> Map.update!(:variants, fn x -> Map.update(x, variant, 1, fn x -> x + 1 end) end)
+      |> Map.update(:variants, %{variant => 1}, fn x -> Map.update(x, variant, 1, fn x -> x + 1 end) end)
      )
     )
   end
@@ -141,7 +141,7 @@ defmodule Unleash.Metrics do
     &(
       &1
       |> Map.update!(:no, fn x -> x + 1 end)
-      |> Map.update!(:variants, fn x -> Map.update(x, variant, 1, fn x -> x + 1 end) end)
+      |> Map.update(:variants, %{variant => 1}, fn x -> Map.update(x, variant, 1, fn x -> x + 1 end) end)
      )
     )
   end
