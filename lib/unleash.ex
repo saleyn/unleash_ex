@@ -105,7 +105,10 @@ defmodule Unleash do
 
               loaded_feature ->
                 {result, strategy_evaluations} =
-                  Feature.enabled?(loaded_feature, Map.put(context, :feature_toggle, loaded_feature.name))
+                  Feature.enabled?(
+                    loaded_feature,
+                    Map.put(context, :feature_toggle, loaded_feature.name)
+                  )
 
                 Metrics.add_metric({loaded_feature, result})
 
