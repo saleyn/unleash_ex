@@ -35,7 +35,7 @@ defmodule Unleash.MixProject do
         "coveralls.html": :test
       ],
       dialyzer: [
-        plt_add_deps: :project,
+        apps_direct: true,
         plt_add_apps: [:mix]
       ]
     ]

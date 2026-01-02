@@ -52,6 +52,7 @@ defmodule Unleash.Variant do
 
     effective_variants = variants(strategies, context) ++ variants
     {feature_enabled, _} = Feature.enabled?(feature, context)
+
     {variant, metadata} =
       case feature_enabled do
         true -> variants(effective_variants, name, context, seed)

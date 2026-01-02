@@ -118,7 +118,11 @@ defmodule Unleash.Metrics do
     |> Map.update(feature, %{yes: 0, no: 1}, &Map.update!(&1, :no, fn x -> x + 1 end))
   end
 
-  defp handle_variant_metric(%{toggles: features} = state, %Feature{name: feature, enabled: enabled?}, %{name: variant}) do
+  defp handle_variant_metric(
+         %{toggles: features} = state,
+         %Feature{name: feature, enabled: enabled?},
+         %{name: variant}
+       ) do
     features
     |> update_variant_metric(feature, enabled?, variant)
     |> (&Map.put(state, :toggles, &1)).()
@@ -126,23 +130,27 @@ defmodule Unleash.Metrics do
 
   defp update_variant_metric(features, feature, true, variant) do
     features
-    |> Map.update(feature, %{yes: 1, no: 0, variants: %{variant => 1}},
-    &(
-      &1
-      |> Map.update!(:yes, fn x -> x + 1 end)
-      |> Map.update(:variants, %{variant => 1}, fn x -> Map.update(x, variant, 1, fn x -> x + 1 end) end)
-     )
+    |> Map.update(
+      feature,
+      %{yes: 1, no: 0, variants: %{variant => 1}},
+      &(&1
+        |> Map.update!(:yes, fn x -> x + 1 end)
+        |> Map.update(:variants, %{variant => 1}, fn x ->
+          Map.update(x, variant, 1, fn x -> x + 1 end)
+        end))
     )
   end
 
   defp update_variant_metric(features, feature, false, variant) do
     features
-    |> Map.update(feature, %{yes: 0, no: 1, variants: %{variant => 1}},
-    &(
-      &1
-      |> Map.update!(:no, fn x -> x + 1 end)
-      |> Map.update(:variants, %{variant => 1}, fn x -> Map.update(x, variant, 1, fn x -> x + 1 end) end)
-     )
+    |> Map.update(
+      feature,
+      %{yes: 0, no: 1, variants: %{variant => 1}},
+      &(&1
+        |> Map.update!(:no, fn x -> x + 1 end)
+        |> Map.update(:variants, %{variant => 1}, fn x ->
+          Map.update(x, variant, 1, fn x -> x + 1 end)
+        end))
     )
   end
 

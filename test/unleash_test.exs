@@ -178,6 +178,15 @@ defmodule UnleashTest do
   defp start_repo(_) do
     stop_supervised(Unleash.Repo)
 
+    # Set up client mock expectations for registration
+    Unleash.ClientMock
+    |> stub(:register_client, fn -> {:ok, %{}} end)
+    |> stub(:features, fn _ -> {:ok, %{etag: "test_etag", features: %Unleash.Features{}}} end)
+    |> stub(:metrics, fn _ -> {:ok, %SimpleHttp.Response{}} end)
+
+    # Configure the mock client
+    Application.put_env(:unleash, :client, Unleash.ClientMock)
+
     state = Unleash.Features.from_map!(state())
 
     {:ok, _pid} = start_supervised({Unleash.Repo, state})

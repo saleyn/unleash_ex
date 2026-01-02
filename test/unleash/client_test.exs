@@ -138,7 +138,7 @@ defmodule Unleash.ClientTest do
       assert metadata[:url] =~ "client/register"
       assert metadata[:sdk_version] =~ "unleash_ex:"
       assert is_list(metadata[:strategies])
-      assert metadata[:interval] == 600_000
+      assert metadata[:interval] == 60_000
 
       assert is_number(measurements[:system_time])
       assert is_number(measurements[:monotonic_time])
@@ -165,7 +165,7 @@ defmodule Unleash.ClientTest do
 
       assert metadata[:sdk_version] =~ "unleash_ex:"
       assert is_list(metadata[:strategies])
-      assert metadata[:interval] == 600_000
+      assert metadata[:interval] == 60_000
 
       assert is_number(measurements[:duration])
       assert is_number(measurements[:monotonic_time])
@@ -205,7 +205,7 @@ defmodule Unleash.ClientTest do
 
       assert metadata[:sdk_version] =~ "unleash_ex:"
       assert is_list(metadata[:strategies])
-      assert metadata[:interval] == 600_000
+      assert metadata[:interval] == 60_000
 
       assert is_number(measurements[:duration])
       assert is_number(measurements[:monotonic_time])

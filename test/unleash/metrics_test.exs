@@ -28,9 +28,15 @@ defmodule Unleash.MetricsTest do
                 feature <- string(:alphanumeric, min_length: 1) do
         Unleash.ClientMock
         |> allow(self(), metrics)
-        |> stub(:metrics, fn _ -> %SimpleHttp.Response{} end)
+        |> stub(:register_client, fn -> {:ok, %{}} end)
+        |> stub(:metrics, fn _ -> {:ok, %SimpleHttp.Response{}} end)
 
         Application.put_env(:unleash, :client, Unleash.ClientMock)
+        # Clear metrics before starting this iteration
+        assert :ok == GenServer.call(metrics, :send_metrics)
+        # Verify metrics are actually cleared
+        {:ok, %{bucket: %{toggles: empty_toggles}}} = Unleash.Metrics.get_metrics(metrics)
+        assert Map.get(empty_toggles, feature) == nil
 
         for _ <- 1..enabled do
           Unleash.Metrics.add_metric({%Feature{name: feature}, true}, metrics)
@@ -40,10 +46,18 @@ defmodule Unleash.MetricsTest do
           Unleash.Metrics.add_metric({%Feature{name: feature}, false}, metrics)
         end
 
-        {:ok, %{bucket: %{toggles: toggles}}} = Unleash.Metrics.get_metrics(metrics)
-        assert Map.get(toggles, feature) == %{yes: enabled, no: disabled}
+        # Add a small delay to ensure all async messages are processed
+        :timer.sleep(10)
 
-        Process.send(metrics, :send_metrics, [])
+        {:ok, %{bucket: %{toggles: toggles}}} = Unleash.Metrics.get_metrics(metrics)
+        feature_metrics = Map.get(toggles, feature)
+
+        assert feature_metrics != nil,
+               "Expected feature '#{feature}' to exist in toggles: #{inspect(Map.keys(toggles))}"
+
+        assert feature_metrics == %{yes: enabled, no: disabled}
+
+        assert :ok == GenServer.call(metrics, :send_metrics)
       end
     end
 
@@ -66,9 +80,10 @@ defmodule Unleash.MetricsTest do
         test_pid = self()
 
         feature = "feature_1"
+
         Unleash.ClientMock
         |> allow(test_pid, metrics)
-        |> stub(:metrics, fn _ -> %SimpleHttp.Response{} end)
+        |> stub(:metrics, fn _ -> {:ok, %SimpleHttp.Response{}} end)
 
         Application.put_env(:unleash, :client, Unleash.ClientMock)
         assert :ok == Process.send(metrics, :send_metrics, [])
@@ -110,8 +125,9 @@ defmodule Unleash.MetricsTest do
                 feature <- string(:alphanumeric, min_length: 1) do
         Unleash.ClientMock
         |> allow(self(), metrics)
+        |> stub(:register_client, fn -> {:ok, %{}} end)
         |> expect(:metrics, fn _ ->
-          %SimpleHttp.Response{}
+          {:ok, %SimpleHttp.Response{}}
         end)
 
         Application.put_env(:unleash, :client, Unleash.ClientMock)
