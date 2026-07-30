@@ -137,6 +137,7 @@ defmodule Unleash.Repo do
   defp maybe_register_fast_metrics(features) do
     if Config.fast_metrics() do
       MetricsFast.register_features(features)
+      MetricsFast.prune_stale_features(features)
     end
   end
 

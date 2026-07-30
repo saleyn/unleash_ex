@@ -2,6 +2,19 @@
 
 <!-- %% CHANGELOG_ENTRIES %% -->
 
+## Unreleased
+
+* changed: `fast_metrics` now defaults to `true` — `Unleash.MetricsFast` (ETS/`:counters`-based)
+  replaces `Unleash.Metrics` (GenServer-based) as the default metrics collector for all consumers
+  with no config change required. Set `fast_metrics: false` to keep the previous behavior. See
+  `BENCHMARK_REPORT.md`.
+* fix: `Unleash.MetricsFast` collect/reset race — counters are now reset by subtracting the exact
+  delta collected, instead of blindly zeroing, so increments landing between a metrics collection
+  and its reset are no longer lost.
+* add: `Unleash.MetricsFast.prune_stale_features/1` — removes counters for features
+  deleted/renamed upstream; called automatically by `Unleash.Repo` after each features refresh to
+  bound ETS growth.
+
 ## 1.9.0 - 2023-01-25
 
 * add: Telemetry events for `Unleash.Client` [!28](https://gitlab.com/afontaine/unleash_ex/-/merge_requests/28)

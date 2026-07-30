@@ -57,6 +57,7 @@ config :unleash, Unleash,
   custom_http_headers: [], # A keyword list of custom headers to send to the server
   disable_client: false, # Whether or not to enable the client
   disable_metrics: false, # Whether or not to send metrics,
+  fast_metrics: true, # Use the ETS/:counters-based metrics collector (Unleash.MetricsFast); set false to use the legacy GenServer-based Unleash.Metrics
   retries: -1, # How many times to retry on failure, -1 disables limit
   app_env: :dev # Which environment we're in
 ```
@@ -67,6 +68,13 @@ config :unleash, Unleash,
 `:strategies` should be a module that implements
 `c:Unleash.Strategies.strategies/0`. See [Extensibility](#extensibility)
 for more information.
+
+`:fast_metrics` selects which metrics collector backs `Unleash.enabled?/2,3` and
+`Unleash.get_variant/2,3`: `Unleash.MetricsFast` (ETS + `:counters`, default) or the legacy
+`Unleash.Metrics` (GenServer). See `BENCHMARK_REPORT.md` for the throughput/memory comparison
+behind this default. Note that `disable_metrics` is only read once, at `Unleash.MetricsFast`
+startup, so toggling it at runtime after boot has no effect while `fast_metrics: true` — restart
+the application to pick up a change.
 
 ## Extensibility
 
