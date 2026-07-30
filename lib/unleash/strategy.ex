@@ -28,7 +28,12 @@ defmodule Unleash.Strategy do
         {parameters, parameters || %{}}
       end)
 
-    new_map2
+    {_, new_map3} =
+      Map.get_and_update(new_map2, "constraints", fn constraints ->
+        {constraints, Enum.map(constraints || [], &Constraint.precompute_context_atom/1)}
+      end)
+
+    new_map3
   end
 
   defmacro __using__(opts) do
@@ -83,9 +88,7 @@ defmodule Unleash.Strategy do
 
   @doc false
   def enabled?(%{"name" => name} = strategy, context) do
-    {_name, module} =
-      Config.strategies()
-      |> Enum.find(fn {n, _mod} -> n == name end)
+    module = Map.fetch!(Config.strategies_map(), name)
 
     check_constraints(strategy, context) and module.check_enabled(strategy["parameters"], context)
   end
