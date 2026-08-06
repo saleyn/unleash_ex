@@ -71,10 +71,13 @@ for more information.
 
 `:fast_metrics` selects which metrics collector backs `Unleash.enabled?/2,3` and
 `Unleash.get_variant/2,3`: `Unleash.MetricsFast` (ETS + `:counters`, default) or the legacy
-`Unleash.Metrics` (GenServer). See `BENCHMARK_REPORT.md` for the throughput/memory comparison
-behind this default. Note that `disable_metrics` is only read once, at `Unleash.MetricsFast`
-startup, so toggling it at runtime after boot has no effect while `fast_metrics: true` — restart
-the application to pick up a change.
+`Unleash.Metrics` (GenServer). `Unleash.MetricsFast` updates lock-free `:counters` directly on
+the calling process instead of going through a GenServer mailbox, so it avoids the queue
+buildup and request-path latency spikes the legacy collector suffers under load. See
+`BENCHMARK_REPORT.md` for the throughput/memory comparison behind this default. Note that
+`disable_metrics` is only read once, at `Unleash.MetricsFast` startup, so toggling it at
+runtime after boot has no effect while `fast_metrics: true` — restart the application to pick
+up a change.
 
 ## Extensibility
 
