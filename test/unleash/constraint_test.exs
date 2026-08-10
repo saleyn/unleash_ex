@@ -462,6 +462,54 @@ defmodule Unleash.Strategy.ConstraintTest do
     end
   end
 
+  describe "precompute_context_atom/1" do
+    test "stashes the resolved context-map atom under contextNameAtom" do
+      assert %{"contextNameAtom" => :app_name} =
+               Constraint.precompute_context_atom(mk_constraint(%{"contextName" => "appName"}))
+    end
+
+    test "is a no-op for a constraint without contextName" do
+      constraint = %{"operator" => "IN"}
+      assert Constraint.precompute_context_atom(constraint) == constraint
+    end
+
+    test "verify_all/2 gives the same result via the precomputed atom as the on-the-fly fallback" do
+      constraint =
+        mk_constraint(%{
+          "contextName" => "appName",
+          "operator" => "IN",
+          "values" => ["unleash"]
+        })
+
+      precomputed = Constraint.precompute_context_atom(constraint)
+      assert Map.has_key?(precomputed, "contextNameAtom")
+
+      context = %{app_name: "unleash"}
+
+      assert Constraint.verify_all([constraint], context) ==
+               Constraint.verify_all([precomputed], context)
+
+      assert Constraint.verify_all([precomputed], context) == true
+    end
+
+    test "Unleash.Strategy.update_map/1 pre-resolves constraint context atoms on real feature data" do
+      strategy =
+        Unleash.Strategy.update_map(%{
+          "name" => "default",
+          "constraints" => [
+            %{
+              "contextName" => "appName",
+              "operator" => "IN",
+              "values" => ["unleash"],
+              "inverted" => false
+            }
+          ]
+        })
+
+      assert [%{"contextNameAtom" => :app_name}] = strategy["constraints"]
+    end
+  end
+
   defp mk_constraint(), do: mk_constraint(%{})
 
   defp mk_constraint(map) do

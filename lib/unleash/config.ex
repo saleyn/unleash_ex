@@ -13,6 +13,7 @@ defmodule Unleash.Config do
     custom_http_headers: [],
     disable_client: false,
     disable_metrics: false,
+    fast_metrics: true,
     retries: -1,
     client: Unleash.Client,
     http_client: Unleash.Http.SimpleHttp,
@@ -54,6 +55,27 @@ defmodule Unleash.Config do
 
   def strategy_names, do: for({n, _} <- strategies(), do: n)
 
+  @doc """
+  Same data as `strategies/0`, as a `name => module` map, cached in
+  `:persistent_term` so `Unleash.Strategy.enabled?/2` doesn't pay for
+  rebuilding the strategies list and linear-scanning it on every strategy
+  check. Since `:strategies` is a config value a consumer could in principle
+  change at runtime (see README's Extensibility section), changing it after
+  the first lookup requires a restart to take effect — same caveat already
+  documented for `fast_metrics`/`disable_metrics` in `Unleash.MetricsFast`.
+  """
+  def strategies_map do
+    case :persistent_term.get(:unleash_strategies_map, nil) do
+      nil ->
+        map = Map.new(strategies())
+        :persistent_term.put(:unleash_strategies_map, map)
+        map
+
+      map ->
+        map
+    end
+  end
+
   def backup_file do
     application_env(:backup_file)
     |> case do
@@ -69,6 +91,16 @@ defmodule Unleash.Config do
   def disable_client, do: application_env(:disable_client)
 
   def disable_metrics, do: application_env(:disable_metrics)
+
+  def fast_metrics, do: application_env(:fast_metrics)
+
+  def metrics_module do
+    if fast_metrics() do
+      Unleash.MetricsFast
+    else
+      Unleash.Metrics
+    end
+  end
 
   def retries, do: application_env(:retries)
 
@@ -90,9 +122,36 @@ defmodule Unleash.Config do
 
   def telemetry_metadata, do: %{appname: appname(), instance_id: instance_id()}
 
+  # Application.get_application/1 (~14 μs, see :persistent_term.get/2 below)
+  # can't be resolved at compile time: at the point Unleash.Config itself is
+  # being compiled, the app-to-module association it depends on doesn't
+  # exist yet (it's written after all of the app's modules finish
+  # compiling), so a module attribute would silently cache `nil` forever.
+  # It's safe to cache lazily at the first *runtime* call instead — by then
+  # :unleash is loaded (even if not started) and the owning app for a given
+  # module cannot change afterwards.
+  defp owning_app do
+    case :persistent_term.get(:unleash_config_owning_app, nil) do
+      nil ->
+        # Don't cache a nil result: it would mean :unleash wasn't loaded yet
+        # at this particular call, which is possible very early in startup,
+        # so keep retrying until we get a real answer to cache.
+        case Application.get_application(__MODULE__) do
+          nil ->
+            nil
+
+          app ->
+            :persistent_term.put(:unleash_config_owning_app, app)
+            app
+        end
+
+      app ->
+        app
+    end
+  end
+
   defp application_env(opt) do
-    __MODULE__
-    |> Application.get_application()
+    owning_app()
     |> Application.get_env(opt)
     |> case do
       nil -> Map.get(@defaults, opt)

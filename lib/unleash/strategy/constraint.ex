@@ -8,6 +8,22 @@ defmodule Unleash.Strategy.Constraint do
   enacted by allowing users to specify context values to include or exclude.
   """
 
+  @doc """
+  Pre-resolves `constraint["contextName"]` into the context-map atom key it
+  will be looked up under (e.g. `"userId"` -> `:user_id`), stashing it as
+  `"contextNameAtom"`. `contextName` is invariant for the lifetime of the
+  constraint (it only changes when the next features poll replaces it), but
+  computing it involves a regex-based case conversion (`Recase.to_snake/1`)
+  plus an atom-table lookup/creation — real per-call cost if left to
+  `find_value/2` to recompute on every single evaluation. Called once per
+  constraint when features are parsed, from `Unleash.Strategy.update_map/1`.
+  """
+  def precompute_context_atom(%{"contextName" => name} = constraint) do
+    Map.put(constraint, "contextNameAtom", context_name_atom(name))
+  end
+
+  def precompute_context_atom(constraint), do: constraint
+
   def verify_all(constraints, context) do
     Enum.all?(constraints, &verify(&1, context))
   end
@@ -16,13 +32,17 @@ defmodule Unleash.Strategy.Constraint do
          %{"contextName" => name, "operator" => op, "inverted" => inverted} = constraint,
          context
        ) do
+    name_atom = Map.get(constraint, "contextNameAtom") || context_name_atom(name)
+
     context
-    |> find_value(name)
+    |> find_value(name, name_atom)
     |> check(op, constraint)
     |> invert(inverted)
   end
 
   defp verify(%{}, _context), do: false
+
+  defp context_name_atom(name), do: String.to_atom(Recase.to_snake(name))
 
   defp check(nil, _, _), do: false
 
@@ -85,13 +105,13 @@ defmodule Unleash.Strategy.Constraint do
   defp check(semver, "SEMVER_GT", %{"value" => value}), do: cmp_semver(semver, value, &Kernel.>/2)
   defp check(semver, "SEMVER_LT", %{"value" => value}), do: cmp_semver(semver, value, &Kernel.</2)
 
-  defp find_value(nil, _name), do: nil
+  defp find_value(nil, _name, _name_atom), do: nil
 
-  defp find_value(ctx, name) do
+  defp find_value(ctx, name, name_atom) do
     Map.get(
       ctx,
-      String.to_atom(Recase.to_snake(name)),
-      find_value(Map.get(ctx, :properties), name)
+      name_atom,
+      find_value(Map.get(ctx, :properties), name, name_atom)
     )
   end
 

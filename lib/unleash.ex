@@ -8,6 +8,10 @@ defmodule Unleash do
   Configuring `:disable_client` to `true` disables both servers as well as
   registration, while configuring `:disable_metrics` to `true` disables only
   the metrics `GenServer`.
+
+  Configuring `:fast_metrics` to `true` enables the high-performance ETS-based
+  metrics collection (~40x faster than the default GenServer-based approach).
+  This is recommended for high-throughput applications.
   """
 
   use Application
@@ -15,6 +19,7 @@ defmodule Unleash do
   alias Unleash.Config
   alias Unleash.Feature
   alias Unleash.Metrics
+  alias Unleash.MetricsFast
   alias Unleash.Repo
   alias Unleash.Variant
 
@@ -110,7 +115,7 @@ defmodule Unleash do
                     Map.put(context, :feature_toggle, loaded_feature.name)
                   )
 
-                Metrics.add_metric({loaded_feature, result})
+                Config.metrics_module().add_metric({loaded_feature, result})
 
                 metadata = %{
                   feature_name: loaded_feature.name,
@@ -172,7 +177,7 @@ defmodule Unleash do
 
               loaded_feature ->
                 {result, metadata} = Variant.select_variant(loaded_feature, context)
-                Metrics.add_variant_metric({loaded_feature, result})
+                Config.metrics_module().add_variant_metric({loaded_feature, result})
                 {result, metadata}
             end
           end
@@ -189,7 +194,7 @@ defmodule Unleash do
     children =
       [
         {Repo, Config.disable_client()},
-        {{Metrics, name: Metrics}, Config.disable_client() or Config.disable_metrics()}
+        {metrics_child_spec(), Config.disable_client() or Config.disable_metrics()}
       ]
       |> Enum.filter(fn {_m, not_enabled} -> not not_enabled end)
       |> Enum.map(fn {module, _e} -> module end)
@@ -205,6 +210,15 @@ defmodule Unleash do
     end
 
     Supervisor.start_link(children, strategy: :one_for_one)
+  end
+
+  defp metrics_child_spec do
+    if Config.fast_metrics() do
+      # Use Supervisor child_spec to set ID to Unleash.Metrics for compatibility
+      Supervisor.child_spec({MetricsFast, []}, id: Metrics)
+    else
+      {Metrics, name: Metrics}
+    end
   end
 
   def do_registration(n, n, _) do

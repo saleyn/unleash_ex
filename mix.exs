@@ -28,15 +28,20 @@ defmodule Unleash.MixProject do
         }
       ],
       test_coverage: [tool: ExCoveralls],
-      preferred_cli_env: [
+      dialyzer: [
+        apps_direct: true,
+        plt_add_apps: [:mix]
+      ]
+    ]
+  end
+
+  def cli do
+    [
+      preferred_envs: [
         coveralls: :test,
         "coveralls.detail": :test,
         "coveralls.post": :test,
         "coveralls.html": :test
-      ],
-      dialyzer: [
-        apps_direct: true,
-        plt_add_apps: [:mix]
       ]
     ]
   end
@@ -57,6 +62,7 @@ defmodule Unleash.MixProject do
       {:dialyxir, "~> 1.4", only: :dev, runtime: false},
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
       {:expublish, "~> 2.7", only: :dev, runtime: false},
+      {:benchee, "~> 1.3", only: :dev},
       {:junit_formatter, "~> 3.0", only: :test},
       {:stream_data, "~> 1.2", only: [:test, :dev]},
       {:excoveralls, "~> 0.16", only: :test},
@@ -65,9 +71,9 @@ defmodule Unleash.MixProject do
       {:simplehttp, git: "https://github.com/saleyn/simplehttp.git", branch: "master"},
       {:jason, "~> 1.1"},
       {:telemetry, "~> 1.1"},
-      {:plug, "~> 1.8", optional: true},
+      {:plug, "~> 1.14", optional: true},
       {:phoenix_gon, "~> 0.4.0", optional: true},
-      {:finch, "~> 0.20.0"}
+      {:finch, "~> 0.20.0 or ~> 0.21.0 or ~> 0.22.0 or ~> 0.23.0"}
     ]
   end
 

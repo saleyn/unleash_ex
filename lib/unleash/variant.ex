@@ -2,7 +2,6 @@ defmodule Unleash.Variant do
   @moduledoc false
   alias Unleash.Stickiness
   alias Unleash.Feature
-  alias Unleash.Strategy
   alias Unleash.Strategy.Utils
 
   @derive Jason.Encoder
@@ -36,7 +35,7 @@ defmodule Unleash.Variant do
         }
 
   def select_variant(
-        %Feature{variants: variants, strategies: strategies, name: name} = feature,
+        %Feature{variants: variants, name: name} = feature,
         context
       ) do
     sticky_field =
@@ -50,8 +49,8 @@ defmodule Unleash.Variant do
 
     seed = Stickiness.get_seed(sticky_field, context)
 
-    effective_variants = variants(strategies, context) ++ variants
-    {feature_enabled, _} = Feature.enabled?(feature, context)
+    {feature_enabled, strategy_variants} = Feature.enabled_with_variants?(feature, context)
+    effective_variants = strategy_variants ++ variants
 
     {variant, metadata} =
       case feature_enabled do
@@ -160,14 +159,4 @@ defmodule Unleash.Variant do
 
   defp variants(_variants, _name, _context, _seed),
     do: {disabled(), %{reason: :feature_has_no_variants}}
-
-  defp variants([], _context), do: []
-
-  defp variants([strategy | tail], context) do
-    case Strategy.enabled?(strategy, context) do
-      true -> Map.get(strategy, "variants", []) ++ variants(tail, context)
-      {true, _} -> Map.get(strategy, "variants", []) ++ variants(tail, context)
-      _ -> variants(tail, context)
-    end
-  end
 end
