@@ -14,11 +14,13 @@ defmodule Unleash.Repo do
 
   alias Unleash.Cache
   alias Unleash.Config
+  alias Unleash.FeatureCompiler
   alias Unleash.Features
   alias Unleash.MetricsFast
 
   def init(%Features{} = features) do
     Cache.init(features.features)
+    FeatureCompiler.compile_all(features.features)
     {:ok, []}
   end
 
@@ -75,6 +77,8 @@ defmodule Unleash.Repo do
         {:noreply, state}
       else
         Cache.upsert_features(remote_features.features)
+        FeatureCompiler.compile_all(remote_features.features)
+        FeatureCompiler.cleanup(remote_features.features)
         maybe_register_fast_metrics(remote_features.features)
         write_file_state(remote_features)
         {:noreply, state}

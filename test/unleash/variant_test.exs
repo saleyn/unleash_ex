@@ -25,6 +25,12 @@ defmodule Unleash.VariantTest do
   end
 
   describe "get_variant telemetry" do
+    setup do
+      Application.put_env(:unleash, :disable_telemetry, false)
+      on_exit(fn -> Application.put_env(:unleash, :disable_telemetry, true) end)
+      :ok
+    end
+
     test "emits telemetry on start" do
       attach_telemetry_event([:unleash, :variant, :get, :start])
 

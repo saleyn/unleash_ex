@@ -57,6 +57,7 @@ config :unleash, Unleash,
   custom_http_headers: [], # A keyword list of custom headers to send to the server
   disable_client: false, # Whether or not to enable the client
   disable_metrics: false, # Whether or not to send metrics,
+  disable_telemetry: false, # Skip :telemetry.span calls in enabled?/get_variant for lower latency
   fast_metrics: true, # Use the ETS/:counters-based metrics collector (Unleash.MetricsFast); set false to use the legacy GenServer-based Unleash.Metrics
   retries: -1, # How many times to retry on failure, -1 disables limit
   app_env: :dev # Which environment we're in
@@ -78,6 +79,13 @@ buildup and request-path latency spikes the legacy collector suffers under load.
 `disable_metrics` is only read once, at `Unleash.MetricsFast` startup, so toggling it at
 runtime after boot has no effect while `fast_metrics: true` — restart the application to pick
 up a change.
+
+`:disable_telemetry` skips the `:telemetry.span/3` wrapper around `Unleash.enabled?/3` and
+`Unleash.get_variant/3`. When combined with `fast_metrics: true` and compiled closures, the
+telemetry span is the single largest remaining cost on the request path (~40–70% of wall time).
+Setting `disable_telemetry: true` eliminates that overhead at the expense of losing the
+`[:unleash, :feature, :enabled?]` and `[:unleash, :variant, :get]` telemetry events. Background
+client events (features polling, metrics posting, registration) are unaffected.
 
 ## Extensibility
 

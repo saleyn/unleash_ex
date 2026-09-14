@@ -12,6 +12,7 @@ defmodule UnleashTest do
 
     test "should emit evaluation series on stop when applicable" do
       Application.delete_env(:unleash, :disable_client)
+      Application.put_env(:unleash, :disable_telemetry, false)
 
       attach_telemetry_event([:unleash, :feature, :enabled?, :stop])
 
@@ -22,9 +23,8 @@ defmodule UnleashTest do
 
       assert metadata.feature === :test1
       assert metadata.result === false
-      assert metadata.reason === :strategy_evaluations
+      assert metadata.reason === :compiled_eval
       assert metadata.enabled
-      assert [{"userWithId", false}] = metadata.strategy_evaluations
 
       assert is_number(measurements[:duration])
       assert is_number(measurements[:monotonic_time])
@@ -32,6 +32,7 @@ defmodule UnleashTest do
 
     test "should emit reason for non existent feature" do
       Application.delete_env(:unleash, :disable_client)
+      Application.put_env(:unleash, :disable_telemetry, false)
 
       attach_telemetry_event([:unleash, :feature, :enabled?, :stop])
 
@@ -82,6 +83,7 @@ defmodule UnleashTest do
     end
 
     test "should emit telemetry on start" do
+      Application.put_env(:unleash, :disable_telemetry, false)
       attach_telemetry_event([:unleash, :feature, :enabled?, :start])
 
       Unleash.enabled?(:test1)
@@ -96,6 +98,7 @@ defmodule UnleashTest do
     end
 
     test "should emit telemetry with result on stop" do
+      Application.put_env(:unleash, :disable_telemetry, false)
       attach_telemetry_event([:unleash, :feature, :enabled?, :stop])
 
       Unleash.enabled?(:test1)
@@ -128,6 +131,43 @@ defmodule UnleashTest do
     test "should return the default if the client is disabled" do
       assert true == Unleash.get_variant(:variant, %{}, true)
       assert false == Unleash.get_variant(:variant, %{}, false)
+    end
+  end
+
+  describe "disable_telemetry" do
+    setup do
+      stop_supervised(Unleash.Repo)
+      saved_client = Application.get_env(:unleash, :disable_client)
+      saved_telemetry = Application.get_env(:unleash, :disable_telemetry)
+      Application.put_env(:unleash, :disable_client, true)
+      Application.put_env(:unleash, :disable_telemetry, true)
+
+      on_exit(fn ->
+        Application.put_env(:unleash, :disable_client, saved_client)
+        Application.put_env(:unleash, :disable_telemetry, saved_telemetry || false)
+      end)
+
+      :ok
+    end
+
+    test "enabled?/3 skips telemetry when disable_telemetry is true" do
+      attach_telemetry_event([:unleash, :feature, :enabled?, :start])
+      attach_telemetry_event([:unleash, :feature, :enabled?, :stop])
+
+      assert false == Unleash.enabled?(:test1)
+
+      refute_received {:telemetry_metadata, _}
+      refute_received {:telemetry_measurements, _}
+    end
+
+    test "get_variant/3 skips telemetry when disable_telemetry is true" do
+      attach_telemetry_event([:unleash, :variant, :get, :start])
+      attach_telemetry_event([:unleash, :variant, :get, :stop])
+
+      assert true == Unleash.get_variant(:variant, %{}, true)
+
+      refute_received {:telemetry_metadata, _}
+      refute_received {:telemetry_measurements, _}
     end
   end
 

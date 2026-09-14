@@ -17,6 +17,14 @@ defmodule Unleash.Metrics do
     enabled?
   end
 
+  def add_metric_by_name(name, enabled?, pid \\ Unleash.Metrics) when is_binary(name) do
+    unless Config.disable_metrics() do
+      GenServer.cast(pid, {:add_metric, %Unleash.Feature{name: name}, enabled?})
+    end
+
+    enabled?
+  end
+
   def add_variant_metric({feature, variant}, pid \\ Unleash.Metrics) do
     unless Config.disable_metrics() do
       GenServer.cast(pid, {:add_variant_metric, feature, variant})

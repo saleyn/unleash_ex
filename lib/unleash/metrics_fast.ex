@@ -48,6 +48,22 @@ defmodule Unleash.MetricsFast do
   def add_metric({_non_feature, enabled?}), do: enabled?
 
   @doc """
+  Lightweight metric recording by feature name only.
+  Avoids the persistent_term lookup for the full Feature struct when only
+  the name is needed (i.e. the compiled-closure enabled? fast path).
+  """
+  @spec add_metric_by_name(String.t(), boolean()) :: boolean()
+  def add_metric_by_name(name, enabled?) when is_binary(name) do
+    if metrics_enabled?() do
+      counter = get_or_create_counter(name)
+      index = if enabled?, do: @yes_index, else: @no_index
+      :counters.add(counter, index, 1)
+    end
+
+    enabled?
+  end
+
+  @doc """
   Add a metric for a variant check.
   """
   @spec add_variant_metric({Feature.t() | any(), map()}) :: map()

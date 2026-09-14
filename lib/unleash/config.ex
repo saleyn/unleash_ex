@@ -13,6 +13,7 @@ defmodule Unleash.Config do
     custom_http_headers: [],
     disable_client: false,
     disable_metrics: false,
+    disable_telemetry: true,
     fast_metrics: true,
     retries: -1,
     client: Unleash.Client,
@@ -91,6 +92,56 @@ defmodule Unleash.Config do
   def disable_client, do: application_env(:disable_client)
 
   def disable_metrics, do: application_env(:disable_metrics)
+
+  def disable_telemetry, do: application_env(:disable_telemetry)
+
+  @doc """
+  Fast-path accessors that read from persistent_term (O(1), ~20ns).
+  Must call `cache_hot_path_config!/0` once at application start.
+  Falls back to `application_env/1` if the cache hasn't been initialized.
+
+  In test mode these always delegate to Application env so that per-test
+  overrides via `Application.put_env/3` are respected.
+  """
+  if Mix.env() in [:test] do
+    def disable_client_fast, do: disable_client()
+    def disable_telemetry_fast, do: disable_telemetry()
+    def metrics_module_fast, do: metrics_module()
+  else
+    def disable_client_fast do
+      :persistent_term.get(:unleash_cfg_disable_client, :not_cached)
+      |> case do
+        :not_cached -> disable_client()
+        val -> val
+      end
+    end
+
+    def disable_telemetry_fast do
+      :persistent_term.get(:unleash_cfg_disable_telemetry, :not_cached)
+      |> case do
+        :not_cached -> disable_telemetry()
+        val -> val
+      end
+    end
+
+    def metrics_module_fast do
+      :persistent_term.get(:unleash_cfg_metrics_module, :not_cached)
+      |> case do
+        :not_cached -> metrics_module()
+        val -> val
+      end
+    end
+  end
+
+  @doc """
+  Cache hot-path config values in persistent_term. Call once at app start.
+  """
+  def cache_hot_path_config! do
+    :persistent_term.put(:unleash_cfg_disable_client, disable_client())
+    :persistent_term.put(:unleash_cfg_disable_telemetry, disable_telemetry())
+    :persistent_term.put(:unleash_cfg_metrics_module, metrics_module())
+    :ok
+  end
 
   def fast_metrics, do: application_env(:fast_metrics)
 

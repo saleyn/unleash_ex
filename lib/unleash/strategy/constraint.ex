@@ -24,6 +24,35 @@ defmodule Unleash.Strategy.Constraint do
 
   def precompute_context_atom(constraint), do: constraint
 
+  @doc """
+  Pre-parses invariant constraint fields at poll time so the evaluation hot
+  path does no string parsing. Combines `precompute_context_atom/1` with
+  operator-specific value pre-parsing — overwrites `"value"` in place:
+
+  - `NUM_*` → `"value"` becomes a number (or `:error`)
+  - `SEMVER_*` → `"value"` becomes a `{major, minor, patch}` tuple (or `:error`)
+  - `DATE_*` → `"value"` becomes `{:ok, datetime, offset}` (or `{:error, _}`)
+  """
+  def precompute(constraint) do
+    constraint
+    |> precompute_context_atom()
+    |> precompute_value()
+  end
+
+  defp precompute_value(%{"operator" => "NUM_" <> _, "value" => v} = c) when is_binary(v) do
+    %{c | "value" => to_number(v)}
+  end
+
+  defp precompute_value(%{"operator" => "SEMVER_" <> _, "value" => v} = c) when is_binary(v) do
+    %{c | "value" => mk_semver(v)}
+  end
+
+  defp precompute_value(%{"operator" => "DATE_" <> _, "value" => v} = c) when is_binary(v) do
+    %{c | "value" => DateTime.from_iso8601(v)}
+  end
+
+  defp precompute_value(constraint), do: constraint
+
   def verify_all(constraints, context) do
     Enum.all?(constraints, &verify(&1, context))
   end
@@ -50,10 +79,10 @@ defmodule Unleash.Strategy.Constraint do
   defp check(value, "NOT_IN", %{"values" => values}), do: value not in values
 
   defp check(daytime, "DATE_AFTER", %{"value" => value}),
-    do: daytime |> compare_dates(value) == :gt
+    do: day_cpm(day_adapter(daytime), resolve_date(value)) == :gt
 
   defp check(daytime, "DATE_BEFORE", %{"value" => value}),
-    do: daytime |> compare_dates(value) == :lt
+    do: day_cpm(day_adapter(daytime), resolve_date(value)) == :lt
 
   defp check(str, "STR_CONTAINS", %{"values" => values}),
     do: str |> String.contains?(values)
@@ -65,35 +94,35 @@ defmodule Unleash.Strategy.Constraint do
     do: str |> String.ends_with?(values)
 
   defp check(numb, "NUM_EQ", %{"value" => value}) do
-    case to_numbers(numb, value) do
+    case resolve_numbers(numb, value) do
       :error -> false
       {n, m} -> n == m
     end
   end
 
   defp check(numb, "NUM_GT", %{"value" => value}) do
-    case to_numbers(numb, value) do
+    case resolve_numbers(numb, value) do
       :error -> false
       {n, m} -> n > m
     end
   end
 
   defp check(numb, "NUM_GTE", %{"value" => value}) do
-    case to_numbers(numb, value) do
+    case resolve_numbers(numb, value) do
       :error -> false
       {n, m} -> n >= m
     end
   end
 
-  defp check(numb, "NUM_LE", %{"value" => value}) do
-    case to_numbers(numb, value) do
+  defp check(numb, "NUM_LT", %{"value" => value}) do
+    case resolve_numbers(numb, value) do
       :error -> false
       {n, m} -> n < m
     end
   end
 
   defp check(numb, "NUM_LTE", %{"value" => value}) do
-    case to_numbers(numb, value) do
+    case resolve_numbers(numb, value) do
       :error -> false
       {n, m} -> n <= m
     end
@@ -102,8 +131,11 @@ defmodule Unleash.Strategy.Constraint do
   defp check(semver, "SEMVER_EQ", %{"value" => value}),
     do: cmp_semver(semver, value, &Kernel.==/2)
 
-  defp check(semver, "SEMVER_GT", %{"value" => value}), do: cmp_semver(semver, value, &Kernel.>/2)
-  defp check(semver, "SEMVER_LT", %{"value" => value}), do: cmp_semver(semver, value, &Kernel.</2)
+  defp check(semver, "SEMVER_GT", %{"value" => value}),
+    do: cmp_semver(semver, value, &Kernel.>/2)
+
+  defp check(semver, "SEMVER_LT", %{"value" => value}),
+    do: cmp_semver(semver, value, &Kernel.</2)
 
   defp find_value(nil, _name, _name_atom), do: nil
 
@@ -118,7 +150,11 @@ defmodule Unleash.Strategy.Constraint do
   defp invert(result, true), do: !result
   defp invert(result, _), do: result
 
-  defp compare_dates(d1, d2), do: day_adapter(d1) |> day_cpm(day_adapter(d2))
+  # Handles both pre-parsed {:ok, dt, offset} tuples and raw ISO strings
+  defp resolve_date({:ok, _, _} = parsed), do: parsed
+  defp resolve_date({:error, _} = err), do: err
+  defp resolve_date(value) when is_binary(value), do: DateTime.from_iso8601(value)
+  defp resolve_date(_), do: {:error, "Invalid Date"}
 
   defp day_adapter(:now), do: {:ok, DateTime.utc_now(), 0}
 
@@ -130,6 +166,17 @@ defmodule Unleash.Strategy.Constraint do
 
   defp day_cpm({:ok, date1, _}, {:ok, date2, _}), do: date1 |> DateTime.compare(date2)
   defp day_cpm(_, _), do: :error
+
+  # When value is already parsed to a number, only parse the context side
+  defp resolve_numbers(a, b) when is_number(b) do
+    case to_number(a) do
+      :error -> :error
+      n -> {n, b}
+    end
+  end
+
+  defp resolve_numbers(_, :error), do: :error
+  defp resolve_numbers(a, b), do: to_numbers(a, b)
 
   def to_numbers(a, b) do
     case to_number(a) do
@@ -163,8 +210,23 @@ defmodule Unleash.Strategy.Constraint do
   end
 
   def mk_semver(version) when is_binary(version) do
-    l = for x <- String.split(version, "."), do: Integer.parse(x, 10)
-    mk_semver(for y <- l, do: elem(y, 0))
+    parts = String.split(version, ".", parts: 3)
+
+    parsed =
+      Enum.map(parts, fn segment ->
+        # Strip pre-release/build metadata from the last segment (e.g. "3-beta+build")
+        segment
+        |> String.split(~r/[-+]/, parts: 2)
+        |> hd()
+        |> Integer.parse(10)
+      end)
+
+    case parsed do
+      [{a, _}, {b, _}, {c, _}] -> {a, b, c}
+      [{a, _}, {b, _}] -> {a, b, 0}
+      [{a, _}] -> {a, 0, 0}
+      _ -> :error
+    end
   end
 
   def mk_semver(version) when is_list(version), do: mk_semver(List.to_tuple(version))
@@ -176,5 +238,18 @@ defmodule Unleash.Strategy.Constraint do
   def mk_semver(version) when is_tuple(version),
     do: {elem(version, 0), elem(version, 1), elem(version, 2)}
 
-  def cmp_semver(v1, v2, pred), do: pred.(mk_semver(v1), mk_semver(v2))
+  def mk_semver(_), do: :error
+
+  def cmp_semver(v1, v2, pred) do
+    case {resolve_semver(v1), resolve_semver(v2)} do
+      {:error, _} -> false
+      {_, :error} -> false
+      {sv1, sv2} -> pred.(sv1, sv2)
+    end
+  end
+
+  # Already a parsed tuple — pass through
+  defp resolve_semver({_, _, _} = t), do: t
+  defp resolve_semver(:error), do: :error
+  defp resolve_semver(v), do: mk_semver(v)
 end
